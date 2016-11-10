@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[1]:
+# In[2]:
 
 import pandas as pd
 from collections import Counter
@@ -27,13 +27,13 @@ nltk.download()
 
 # # 0. Read in the metadata
 
-# In[2]:
+# In[3]:
 
 mexiko_test = pd.read_excel("excel-export.xls", sheetname="Mexiko")
 mexiko_test.columns
 
 
-# In[3]:
+# In[4]:
 
 def strip(text):
     try:
@@ -51,12 +51,12 @@ mexiko = pd.read_excel("excel-export.xls", sheetname="Mexiko", converters=mexiko
 
 # # Inspect keywords in column "Motivord"
 
-# In[10]:
+# In[4]:
 
 mexiko.Motivord.value_counts()[:10]
 
 
-# In[16]:
+# In[5]:
 
 motivord_count = Counter()
 
@@ -70,6 +70,8 @@ motivord_count.most_common(10)
 
 
 # ## Add sub-collection metadata field "description"
+# 
+# * Add these to the final images in the infobox
 
 # In[4]:
 
@@ -81,7 +83,7 @@ a_str = "1234.j.345432"
 a_str.partition(".")
 
 
-# In[4]:
+# In[6]:
 
 sub_desc = {"a":"Teotihuacan (241) utgrävningar, fornlämningar, invånare",
 "b": "Mexiko (29) utgrävningar, fornlämningar mm",
@@ -102,7 +104,7 @@ sub_desc = {"a":"Teotihuacan (241) utgrävningar, fornlämningar, invånare",
 "q": "Teotihuacan (156) arkeologiska föremål"}
 
 
-# In[5]:
+# In[7]:
 
 mexiko["subcol_desc"] = 0
 for index, row in mexiko.iterrows():
@@ -119,8 +121,18 @@ mexiko.subcol_desc.value_counts()
 
 
 # # Add wiki-formatted URL-link
+# 
+# * Use existing helper [template](https://commons.wikimedia.org/wiki/Template:SMVK-EM-link)
+# 
+# ex: http://kulturarvsdata.se/SMVK-EM/fotografi/html/2786726
+# 
+# {{SMVK-EM-link|foto|1461871|0713.0002}}
+# 
+# - param 1: fotografi
+# - param 2: 2786726
+# - param 3: 0307.a.0001
 
-# In[21]:
+# In[8]:
 
 for index, row in mexiko.iterrows():
     url = row["Länk"]
@@ -137,20 +149,28 @@ mexiko.loc[0,"wiki_url"]
 
 # # Create list of badly filled out meatdata for WMMX
 
-# In[23]:
+# In[13]:
+
+mexiko["Personnamn / avbildad"].value_counts()
+
+
+# In[9]:
 
 for index, row in mexiko.iter
 
 
-# In[63]:
+# In[12]:
 
 file_table = ""
 tot_cnt = 0
 bad_cnt = 0
+no_keyword = 0
+generic_keyword = 0
 for index, row in mexiko.iterrows():
     tot_cnt += 1
     if pd.isnull(row["Motivord"]) and pd.notnull(row["Ort, foto"]):
         bad_cnt += 1
+        no_keyword += 1
         file_table += "! " + str(bad_cnt) + "\n" 
         file_table += "| " + row["wiki_url"] + "\n"
         file_table += "| " + str(row["Region, foto"]) + "\n"
@@ -166,6 +186,7 @@ for index, row in mexiko.iterrows():
         sep_motivord = [token.strip() for token in motivord.split(",")]
         for token in sep_motivord:
             if token in bad_keywords:
+                generic_keyword += 1
                 #print("{} depicts a pyramid, a tempel or ciudadela!".format(row["Motivord"]))
                 diff = set(sep_motivord) - set(bad_keywords)
                 #print(diff)
@@ -195,6 +216,10 @@ table_header += """|-
 """
 full_table = table_header + file_table
 
+print("No keywords: {}".format(no_keyword))
+print("Generic keywords: {}".format(generic_keyword))
+print()
+
 print("== Generic keywords: ==")
 for token in bad_keywords:
     print("* " + token + ", " + str(motivord_count[token]), end="\n")
@@ -203,10 +228,23 @@ print()
 print(full_table)
 
 
-# In[41]:
+# In[7]:
 
-motivord.find("pyramid")
+pd.isnull(mexiko["Ort, foto"]).value_counts()
 
+
+# In[9]:
+
+counter1 = 0
+for index, row in mexiko.iterrows():
+    if pd.notnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]):
+        counter1 += 1
+print(counter1)
+
+
+# Om det bara finns generiskt motivord och det finns Ort, foto OCH Motivord:
+# Finns Commons-kategori som heter typ Pyramids in Techuacan?
+# pröva Motivord
 
 # # Create metadata dataframe to convert to wikitable
 
@@ -263,6 +301,11 @@ mexiko.to_csv("enriched_mexiko_metadata_table.csv", index=False)
 
 
 # # 1. Create category/wikidata mapping tables
+# 
+# [place mappings](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/places_mappings)
+# 
+# [Mexiko keywords](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords)
+# 
 stopwords_file = open("./stopwords.txt","w")
 for token, count in token_count.most_common(1000):
     stopwords_file.write(token + "\n")
