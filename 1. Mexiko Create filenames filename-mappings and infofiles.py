@@ -1,7 +1,7 @@
 
 # coding: utf-8
 
-# In[2]:
+# In[1]:
 
 import pandas as pd
 from collections import Counter
@@ -27,13 +27,13 @@ nltk.download()
 
 # # 0. Read in the metadata
 
-# In[3]:
+# In[2]:
 
 mexiko_test = pd.read_excel("excel-export.xls", sheetname="Mexiko")
 mexiko_test.columns
 
 
-# In[4]:
+# In[3]:
 
 def strip(text):
     try:
@@ -135,71 +135,176 @@ mexiko.subcol_desc.value_counts()
 # In[8]:
 
 for index, row in mexiko.iterrows():
-    url = row["Länk"]
-    first, slash, id_str = url.rpartition("/")
-    new_url = "[" + url + " Fotonummer: " + id_str + "]"
-    mexiko.loc[index, "wiki_url"] = new_url
-mexiko
+    print(row["Länk"])
+    break
 
 
 # In[9]:
 
-mexiko.loc[0,"wiki_url"]
+first, slash, id_str = "http://kulturarvsdata.se/SMVK-EM/fotografi/html/2786726".rpartition("/")
+id_str
+
+
+# In[10]:
+
+for index, row in mexiko.iterrows():
+    url = row["Länk"]
+    #first, slash, id_str = url.rpartition("/")
+    #new_url = "[" + url + " Fotonummer: " + id_str + "]"
+    #mexiko.loc[index, "wiki_url"] = new_url
+    
+    left_side, slash, id_str = url.rpartition("/")
+    template = "{{SMVK-EM-link|1=foto|2=" + id_str + "|3=" + row["Fotonummer"] + "}}"
+    mexiko.loc[index, "SMVK-EM-link"] = template
+    
+mexiko
+
+
+# In[11]:
+
+mexiko.loc[0,"SMVK-EM-link"]
 
 
 # # Create list of badly filled out meatdata for WMMX
 
-# In[13]:
+# In[12]:
 
 mexiko["Personnamn / avbildad"].value_counts()
 
 
-# In[9]:
+# In[13]:
 
-for index, row in mexiko.iter
+tot_cnt = 0
+bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
+for index, row in mexiko.iterrows():
+    tot_cnt += 1
+    if pd.isnull(row["Ort, foto"]): 
+        if pd.isnull(row["Motivord"]):
+            print("Both 'Ort, foto' and 'Motivord' are empty")
+        elif row["Motivord"] in bad_keywords:
+            print("'Ort, foto' is empty and 'Motivord' is generic: {}".format(row["Motivord"]))
+        else:
+            pass
+            
+    elif pd.notnull(row["Ort, foto"]) and row["Motivord"] in bad_keywords:
+        print("Generic 'Motivord': {} but 'Ort, foto' is: {}".format(row["Motivord"], row["Ort, foto"]))
 
 
-# In[12]:
+# In[38]:
+
+bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
 
 file_table = ""
 tot_cnt = 0
 bad_cnt = 0
+problematic_cnt = 0
 no_keyword = 0
+no_ort = 0
 generic_keyword = 0
+empty_ort_and_motivord = 0
+no_ort_and_generic_keyword = 0
+
 for index, row in mexiko.iterrows():
     tot_cnt += 1
-    if pd.isnull(row["Motivord"]) and pd.notnull(row["Ort, foto"]):
+    if pd.isnull(row["Ort, foto"]) and pd.isnull(row["Motivord"]):
         bad_cnt += 1
-        no_keyword += 1
+        empty_ort_and_motivord += 1
         file_table += "! " + str(bad_cnt) + "\n" 
-        file_table += "| " + row["wiki_url"] + "\n"
+        file_table += "| " + row["SMVK-EM-link"] + "\n"
         file_table += "| " + str(row["Region, foto"]) + "\n"
         file_table += "| " + str(row["Ort, foto"]) + "\n"
-        file_table += "| No content keyword\n"
+        file_table += "| Both 'Motivord' and 'Ort, foto' are empty\n"
         file_table += "|\n"
         file_table += "|\n"
         file_table += "|-\n"
+        
+    elif pd.isnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]):
+        
+        if pd.isnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]) in bad_keywords:
+            motivord = row["Motivord"]
+            sep_motivord = [token.strip() for token in motivord.split(",")]
+            for token in sep_motivord:
+                if token in bad_keywords:
+                    generic_keyword += 1
+                    #print("{} depicts a pyramid, a tempel or ciudadela!".format(row["Motivord"]))
+                    diff = set(sep_motivord) - set(bad_keywords)
+                    #print(diff)
+                    if diff == set():
+                        # bad_cnt += 1
+                        problematic_cnt += 1
+                        no_ort_and_generic_keyword += 1
+                        file_table += "! " + str(bad_cnt) + "\n" 
+                        file_table += "| " + row["SMVK-EM-link"] + "\n"
+                        file_table += "| " + str(row["Region, foto"]) + "\n"
+                        file_table += "| " + str(row["Ort, foto"]) + "\n"
+                        file_table += "| No 'Ort, foto' and 'Motivord' is generic\n"
+                        file_table += "|\n"
+                        file_table += "|\n"
+                        file_table += "|-\n"
+        else:
+            problematic_cnt += 1
+            no_ort += 1
+            file_table += "! " + str(bad_cnt) + "\n" 
+            file_table += "| " + row["SMVK-EM-link"] + "\n"
+            file_table += "| " + str(row["Region, foto"]) + "\n"
+            file_table += "| " + str(row["Ort, foto"]) + "\n"
+            file_table += "| No 'Ort, foto'\n"
+            file_table += "|\n"
+            file_table += "|\n"
+            file_table += "|-\n"
+                        
     
-    elif pd.notnull(row["Motivord"]):
-        motivord = row["Motivord"]
-        bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
-        sep_motivord = [token.strip() for token in motivord.split(",")]
-        for token in sep_motivord:
-            if token in bad_keywords:
-                generic_keyword += 1
-                #print("{} depicts a pyramid, a tempel or ciudadela!".format(row["Motivord"]))
-                diff = set(sep_motivord) - set(bad_keywords)
-                #print(diff)
-                if diff == set():
-                    bad_cnt += 1
-                    file_table += "! " + str(bad_cnt) + "\n" 
-                    file_table += "| " + row["wiki_url"] + "\n"
-                    file_table += "| " + str(row["Region, foto"]) + "\n"
-                    file_table += "| " + str(row["Ort, foto"]) + "\n"
-                    file_table += "| Generic content keywords\n"
-                    file_table += "|\n"
-                    file_table += "|\n"
-                    file_table += "|-\n"
+    elif pd.isnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]) in bad_keywords:
+        # bad_cnt += 1
+        problematic_cnt += 1
+        no_ort_and_generic_keyword += 1
+        file_table += "! " + str(bad_cnt) + "\n" 
+        file_table += "| " + row["SMVK-EM-link"] + "\n"
+        file_table += "| " + str(row["Region, foto"]) + "\n"
+        file_table += "| " + str(row["Ort, foto"]) + "\n"
+        file_table += "| No 'Ort, foto' and 'Motivord' is generic\n"
+        file_table += "|\n"
+        file_table += "|\n"
+        file_table += "|-\n" 
+        
+    else:
+    
+        if pd.isnull(row["Motivord"]) and pd.notnull(row["Ort, foto"]):
+            # bad_cnt += 1 # Ort, foto + person, avbildad?
+            no_keyword += 1
+            problematic_cnt +=1
+            file_table += "! " + str(bad_cnt) + "\n" 
+            file_table += "| " + row["SMVK-EM-link"] + "\n"
+            file_table += "| " + str(row["Region, foto"]) + "\n"
+            file_table += "| " + str(row["Ort, foto"]) + "\n"
+            file_table += "| No 'motivord'\n"
+            file_table += "|\n"
+            file_table += "|\n"
+            file_table += "|-\n"
+    
+        elif pd.notnull(row["Motivord"]):
+            motivord = row["Motivord"]
+            sep_motivord = [token.strip() for token in motivord.split(",")]
+            for token in sep_motivord:
+                if token in bad_keywords:
+                    generic_keyword += 1
+                    #print("{} depicts a pyramid, a tempel or ciudadela!".format(row["Motivord"]))
+                    diff = set(sep_motivord) - set(bad_keywords)
+                    #print(diff)
+                    if diff == set():
+                        # bad_cnt += 1
+                        problematic_cnt += 1
+                        file_table += "! " + str(bad_cnt) + "\n" 
+                        file_table += "| " + row["SMVK-EM-link"] + "\n"
+                        file_table += "| " + str(row["Region, foto"]) + "\n"
+                        file_table += "| " + str(row["Ort, foto"]) + "\n"
+                        file_table += "| Motivord' is generic'\n"
+                        file_table += "|\n"
+                        file_table += "|\n"
+                        file_table += "|-\n"
+                                                        
+            
+
 file_table += "|}"
 
 table_header = """{| class="wikitable sortable\n"""
@@ -216,9 +321,26 @@ table_header += """|-
 """
 full_table = table_header + file_table
 
-print("No keywords: {}".format(no_keyword))
-print("Generic keywords: {}".format(generic_keyword))
+print("== Data Quality Statistics ==")
 print()
+print("Total number of photos in batch: '''{}'''".format(tot_cnt))
+print()
+print("=== Technically bad photos (below): '''{}''' ===".format(bad_cnt))
+print()
+print("Both 'Motivord' and 'Ort, foto' are empty: '''{}'''".format(empty_ort_and_motivord))
+print()
+print("=== Problematic photos (below): '''{}''' ===".format(problematic_cnt))
+print()
+print("No 'motivord': '''{}'''".format(no_keyword))
+print()
+print("'Motivord' is generic: '''{}'''".format(generic_keyword))
+print()
+print("No 'Ort, foto': '''{}'''".format(pd.isnull(mexiko["Ort, foto"]).value_counts()[1]))
+print()
+print("No 'Ort, foto' and 'Motivord' is generic: '''{}'''".format(no_ort_and_generic_keyword))
+print()
+
+
 
 print("== Generic keywords: ==")
 for token in bad_keywords:
@@ -228,23 +350,57 @@ print()
 print(full_table)
 
 
-# In[7]:
-
-pd.isnull(mexiko["Ort, foto"]).value_counts()
-
-
-# In[9]:
-
-counter1 = 0
-for index, row in mexiko.iterrows():
-    if pd.notnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]):
-        counter1 += 1
-print(counter1)
-
-
-# Om det bara finns generiskt motivord och det finns Ort, foto OCH Motivord:
+# Tips: Om det bara finns generiskt motivord och det finns Ort, foto OCH Motivord:
 # Finns Commons-kategori som heter typ Pyramids in Techuacan?
 # pröva Motivord
+
+# # Inspect that unique filenames gets created
+
+# In[35]:
+
+# Field "Motivord", "Beskrivning" and "Ort, foto"
+non_id_names = set()
+for index, row in mexiko.iterrows():
+    if pd.notnull(row["Motivord"] and pd.notnull(row["Beskrivning"]) and pd.notnull(row["Ort, foto"])):
+        motivord = row["Motivord"]
+        beskrivning = row["Beskrivning"]
+        ort = row["Ort, foto"]
+        non_id_names.add(motivord + beskrivning + ort)
+print(len(non_id_names))
+
+
+# In[34]:
+
+for fname in non_id_names:
+    print(fname)
+
+
+# In[23]:
+
+# Field "Beskrivning" and "Ort, foto"
+non_id_names = set()
+for index, row in mexiko.iterrows():
+    if pd.notnull(row["Beskrivning"]) and pd.notnull(row["Ort, foto"]):
+        non_id_names.add(str(row["Beskrivning"]) + str(row["Ort, foto"]) )
+print(len(non_id_names))
+
+
+# In[24]:
+
+# Field "Beskrivning" only
+non_id_names = set()
+for index, row in mexiko.iterrows():
+    if pd.notnull(row["Beskrivning"]):
+        non_id_names.add(row["Beskrivning"])
+print(len(non_id_names))
+
+
+# # Create filenames and filenames-mapping file
+
+# In[ ]:
+
+
+
 
 # # Create metadata dataframe to convert to wikitable
 
