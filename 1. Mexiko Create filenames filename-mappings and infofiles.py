@@ -354,6 +354,11 @@ print(full_table)
 # Finns Commons-kategori som heter typ Pyramids in Techuacan?
 # pröva Motivord
 
+# In[49]:
+
+mexiko.to_pickle("./mexiko_df_final.pickle")
+
+
 # # Inspect that unique filenames gets created
 
 # In[35]:
@@ -397,9 +402,70 @@ print(len(non_id_names))
 
 # # Create filenames and filenames-mapping file
 
+# In[42]:
+
+fname1 = "0307.a.0001.tif"
+fname2 = "0307.a.0002.a.tif"
+print("fname1: {}".format(fname1.split(".")))
+print("fname2: {}".format(fname2.split(".")))
+print(fname2[-1].isalpha())
+
+
+# In[60]:
+
+for index, row in mexiko.iterrows():
+    if pd.notnull(row["Beskrivning"]) and pd.notnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]):
+        print("beskr: {}\nOrt: {}\n:Motivord: {}".format(row["Beskrivning"], row["Ort, foto"], row["Motivord"]))
+
+
+# In[50]:
+
+def create_filename(filename):
+    import os
+    import pickle
+    # Remove the extension from filename_1_clean
+    fname_parts = filename.split(".")
+    
+    def create_ext_and_id_str(fname_parts):
+        if len(fname_parts) == 4 and fname_parts[-1].isalpha() :
+            ext = fname_parts[-1]
+            id_str = fname_parts[2]
+        elif len(fname_parts) == 5 and fname_parts[-1].isalpha():
+            ext = fname_parts[-1]
+            id_str = fname_parts[2] + "." + fname_parts[3]
+        #return print("ext: {}\nid_str: {}".format(ext, id_str))
+        return ext, id_str
+    ext, id_str = create_ext_and_id_str(fname_parts)
+    
+    mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
+    
+    def construct_new_name_from_dataframe(dataframe):
+        for index, row in dataframe.iterrows():
+            
+
+
+# In[48]:
+
+create_filename(fname2)
+
+
 # In[ ]:
 
+total_images = 0
+OK_images = 0
+uncategorized_images = 0
+faulty_images = 0
 
+filenames_file = open("./filenames_mapping.csv","w")
+filenames_file.write("Folder|Original|Commons\n")
+    
+for row_index, row in mexiko.iterrows():
+    filename = create_filename(row["Folder"], row["Filename"])
+    save_filename_to_filename_file(filenames_file, filename)
+    create_infofile(row, filename)
+    #print("Stats: \nTotal images {}\nOK images {}\nUncategorized images {}\nImages missing author {}".format(total_images, OK_images - faulty_images, uncategorized_images, faulty_images ))
+#print("Total Stats: \nTotal images {}\nOK images {}\nUncategorized images {}\nImages missing author {}".format(total_images, OK_images - faulty_images, uncategorized_images, faulty_images ))
+print("Uncategorized images: {} out of {}".format(uncategorized_images, total_images))
 
 
 # # Create metadata dataframe to convert to wikitable
