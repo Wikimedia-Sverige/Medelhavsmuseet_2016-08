@@ -9,11 +9,25 @@ import os
 from textblob import TextBlob
 import regex
 import operator
+import pickle
 
 # For bigrams creation
 import nltk
 from nltk import word_tokenize
 from nltk.util import ngrams
+
+mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
+
+
+# In[2]:
+
+pd.describe_option()
+
+
+# In[3]:
+
+pd.set_option('display.max_rows', 5)
+pd.set_option('max_seq_items', 10)
 
 # Ensure this computer has got NLTK tokenizers
 nltk.download()
@@ -27,13 +41,13 @@ nltk.download()
 
 # # 0. Read in the metadata
 
-# In[2]:
+# In[4]:
 
 mexiko_test = pd.read_excel("excel-export.xls", sheetname="Mexiko")
 mexiko_test.columns
 
 
-# In[3]:
+# In[5]:
 
 def strip(text):
     try:
@@ -51,12 +65,12 @@ mexiko = pd.read_excel("excel-export.xls", sheetname="Mexiko", converters=mexiko
 
 # # Inspect keywords in column "Motivord"
 
-# In[4]:
+# In[6]:
 
 mexiko.Motivord.value_counts()[:10]
 
 
-# In[5]:
+# In[7]:
 
 motivord_count = Counter()
 
@@ -73,17 +87,17 @@ motivord_count.most_common(10)
 # 
 # * Add these to the final images in the infobox
 
-# In[4]:
+# In[8]:
 
 a_str = "1234.j.345432"
 
 
-# In[5]:
+# In[9]:
 
 a_str.partition(".")
 
 
-# In[6]:
+# In[10]:
 
 sub_desc = {"a":"Teotihuacan (241) utgrävningar, fornlämningar, invånare",
 "b": "Mexiko (29) utgrävningar, fornlämningar mm",
@@ -104,7 +118,7 @@ sub_desc = {"a":"Teotihuacan (241) utgrävningar, fornlämningar, invånare",
 "q": "Teotihuacan (156) arkeologiska föremål"}
 
 
-# In[7]:
+# In[11]:
 
 mexiko["subcol_desc"] = 0
 for index, row in mexiko.iterrows():
@@ -132,20 +146,20 @@ mexiko.subcol_desc.value_counts()
 # - param 2: 2786726
 # - param 3: 0307.a.0001
 
-# In[8]:
+# In[12]:
 
 for index, row in mexiko.iterrows():
     print(row["Länk"])
     break
 
 
-# In[9]:
+# In[13]:
 
 first, slash, id_str = "http://kulturarvsdata.se/SMVK-EM/fotografi/html/2786726".rpartition("/")
 id_str
 
 
-# In[10]:
+# In[14]:
 
 for index, row in mexiko.iterrows():
     url = row["Länk"]
@@ -160,19 +174,19 @@ for index, row in mexiko.iterrows():
 mexiko
 
 
-# In[11]:
+# In[15]:
 
 mexiko.loc[0,"SMVK-EM-link"]
 
 
 # # Create list of badly filled out meatdata for WMMX
 
-# In[12]:
+# In[16]:
 
 mexiko["Personnamn / avbildad"].value_counts()
 
 
-# In[13]:
+# In[17]:
 
 tot_cnt = 0
 bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
@@ -190,10 +204,19 @@ for index, row in mexiko.iterrows():
         print("Generic 'Motivord': {} but 'Ort, foto' is: {}".format(row["Motivord"], row["Ort, foto"]))
 
 
-# In[38]:
+# In[18]:
 
 bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
 
+motivord_count = Counter()
+
+for index, string in mexiko.Motivord.iteritems():
+    if pd.notnull(string):
+        tokens = string.split(", ")
+        tokens = [token.strip() for token in tokens]
+        for token in tokens:
+            motivord_count[token] += 1
+            
 file_table = ""
 tot_cnt = 0
 bad_cnt = 0
@@ -203,20 +226,87 @@ no_ort = 0
 generic_keyword = 0
 empty_ort_and_motivord = 0
 no_ort_and_generic_keyword = 0
+no_desc = 0
+no_desc_and_no_ort = 0
+no_desc_no_motivord = 0
+no_desc_no_ort_no_motivord = 0
+no_desc_no_ort_generic_motivord = 0
+
 
 for index, row in mexiko.iterrows():
     tot_cnt += 1
+    
+    # Technically bad/problematic photos
+    if pd.isnull(row["Beskrivning"]): # problematic
+        no_desc += 1
+        problematic_cnt += 1
+        
+        if pd.isnull(row["Ort, foto"]): # Technically bad photos
+            no_desc_and_no_ort += 1
+            bad_cnt += 1
+            file_table += "! " + str(bad_cnt) + "\n" 
+            file_table += "| " + row["SMVK-EM-link"] + "\n"
+            file_table += "| " + str(row["Beskrivning"]) + "\n"
+            file_table += "| " + str(row["Ort, foto"]) + "\n"
+            file_table += "| " + str(row["Motivord"]) + "\n"
+            file_table += "| Both 'Description' and 'Place, photo' are empty\n"
+            file_table += "|\n"
+            file_table += "|\n"
+            file_table += "|-\n"
+            
+            if pd.isnull(row["Motivord"]): # Technically bad photos
+                bad_cnt += 1
+                no_desc_no_ort_no_motivord += 1
+                file_table += "! " + str(bad_cnt) + "\n" 
+                file_table += "| " + row["SMVK-EM-link"] + "\n"
+                file_table += "| " + str(row["Beskrivning"]) + "\n"
+                file_table += "| " + str(row["Ort, foto"]) + "\n"
+                file_table += "| " + str(row["Motivord"]) + "\n"
+                file_table += "| 'Description' and 'Place, photo' and 'Motive' are empty\n"
+                file_table += "|\n"
+                file_table += "|\n"
+                file_table += "|-\n"
+            
+            elif pd.notnull(row["Motivord"]): 
+                motivord = row["Motivord"]
+                sep_motivord = [token.strip() for token in motivord.split(",")]
+                for token in sep_motivord:
+                    if token in bad_keywords:
+                        generic_keyword += 1
+                        #print("{} depicts a pyramid, a tempel or ciudadela!".format(row["Motivord"]))
+                        diff = set(sep_motivord) - set(bad_keywords)
+                        #print(diff)
+                        if diff == set(): # Technically bad photos
+                            bad_cnt += 1
+                            no_desc_no_ort_generic_motivord += 1
+                            file_table += "! " + str(bad_cnt) + "\n" 
+                            file_table += "| " + row["SMVK-EM-link"] + "\n"
+                            file_table += "| " + str(row["Beskrivning"]) + "\n"
+                            file_table += "| " + str(row["Ort, foto"]) + "\n"
+                            file_table += "| " + str(row["Motivord"]) + "\n"
+                            file_table += "| Both 'Description' and 'Place, photo' are empty and 'Motive' is generic\n"
+                            file_table += "|\n"
+                            file_table += "|\n"
+                            file_table += "|-\n"
+        
+        elif pd.isnull(row["Motivord"]): # problematic "Beskrivning might still be filled in"
+            no_desc_no_motivord += 1
+            problematic_cnt += 1
+            
+                
+    # Technically bad photos    
     if pd.isnull(row["Ort, foto"]) and pd.isnull(row["Motivord"]):
-        bad_cnt += 1
+        problematic_cnt += 1
         empty_ort_and_motivord += 1
-        file_table += "! " + str(bad_cnt) + "\n" 
-        file_table += "| " + row["SMVK-EM-link"] + "\n"
-        file_table += "| " + str(row["Region, foto"]) + "\n"
-        file_table += "| " + str(row["Ort, foto"]) + "\n"
-        file_table += "| Both 'Motivord' and 'Ort, foto' are empty\n"
-        file_table += "|\n"
-        file_table += "|\n"
-        file_table += "|-\n"
+        # file_table += "! " + str(bad_cnt) + "\n" 
+        # file_table += "| " + row["SMVK-EM-link"] + "\n"
+        # file_table += "| " + str(row["Region, foto"]) + "\n"
+        # file_table += "| " + str(row["Ort, foto"]) + "\n"
+        # file_table += "| " + str(row["Motivord"]) + "\n"
+        # file_table += "| Both 'Motivord' and 'Ort, foto' are empty\n"
+        # file_table += "|\n"
+        # file_table += "|\n"
+        # file_table += "|-\n"
         
     elif pd.isnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]):
         
@@ -233,39 +323,42 @@ for index, row in mexiko.iterrows():
                         # bad_cnt += 1
                         problematic_cnt += 1
                         no_ort_and_generic_keyword += 1
-                        file_table += "! " + str(bad_cnt) + "\n" 
-                        file_table += "| " + row["SMVK-EM-link"] + "\n"
-                        file_table += "| " + str(row["Region, foto"]) + "\n"
-                        file_table += "| " + str(row["Ort, foto"]) + "\n"
-                        file_table += "| No 'Ort, foto' and 'Motivord' is generic\n"
-                        file_table += "|\n"
-                        file_table += "|\n"
-                        file_table += "|-\n"
+                        # file_table += "! " + str(bad_cnt) + "\n" 
+                        # file_table += "| " + row["SMVK-EM-link"] + "\n"
+                        # file_table += "| " + str(row["Region, foto"]) + "\n"
+                        # file_table += "| " + str(row["Ort, foto"]) + "\n"
+                        # file_table += "| " + str(row["Motivord"]) + "\n"
+                        # file_table += "| No 'Ort, foto' and 'Motivord' is generic\n"
+                        # file_table += "|\n"
+                        # file_table += "|\n"
+                        # file_table += "|-\n"
         else:
             problematic_cnt += 1
             no_ort += 1
-            file_table += "! " + str(bad_cnt) + "\n" 
-            file_table += "| " + row["SMVK-EM-link"] + "\n"
-            file_table += "| " + str(row["Region, foto"]) + "\n"
-            file_table += "| " + str(row["Ort, foto"]) + "\n"
-            file_table += "| No 'Ort, foto'\n"
-            file_table += "|\n"
-            file_table += "|\n"
-            file_table += "|-\n"
+            # file_table += "! " + str(bad_cnt) + "\n" 
+            # file_table += "| " + row["SMVK-EM-link"] + "\n"
+            # file_table += "| " + str(row["Region, foto"]) + "\n"
+            # file_table += "| " + str(row["Ort, foto"]) + "\n"
+            # file_table += "| " + str(row["Motivord"]) + "\n"
+            # file_table += "| No 'Ort, foto'\n"
+            # file_table += "|\n"
+            # file_table += "|\n"
+            # file_table += "|-\n"
                         
     
     elif pd.isnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]) in bad_keywords:
         # bad_cnt += 1
         problematic_cnt += 1
         no_ort_and_generic_keyword += 1
-        file_table += "! " + str(bad_cnt) + "\n" 
-        file_table += "| " + row["SMVK-EM-link"] + "\n"
-        file_table += "| " + str(row["Region, foto"]) + "\n"
-        file_table += "| " + str(row["Ort, foto"]) + "\n"
-        file_table += "| No 'Ort, foto' and 'Motivord' is generic\n"
-        file_table += "|\n"
-        file_table += "|\n"
-        file_table += "|-\n" 
+        # file_table += "! " + str(bad_cnt) + "\n" 
+        # file_table += "| " + row["SMVK-EM-link"] + "\n"
+        # file_table += "| " + str(row["Region, foto"]) + "\n"
+        # file_table += "| " + str(row["Ort, foto"]) + "\n"
+        # file_table += "| " + str(row["Motivord"]) + "\n"
+        # file_table += "| No 'Ort, foto' and 'Motivord' is generic\n"
+        # file_table += "|\n"
+        # file_table += "|\n"
+        # file_table += "|-\n" 
         
     else:
     
@@ -273,14 +366,15 @@ for index, row in mexiko.iterrows():
             # bad_cnt += 1 # Ort, foto + person, avbildad?
             no_keyword += 1
             problematic_cnt +=1
-            file_table += "! " + str(bad_cnt) + "\n" 
-            file_table += "| " + row["SMVK-EM-link"] + "\n"
-            file_table += "| " + str(row["Region, foto"]) + "\n"
-            file_table += "| " + str(row["Ort, foto"]) + "\n"
-            file_table += "| No 'motivord'\n"
-            file_table += "|\n"
-            file_table += "|\n"
-            file_table += "|-\n"
+            # file_table += "! " + str(bad_cnt) + "\n" 
+            # file_table += "| " + row["SMVK-EM-link"] + "\n"
+            # file_table += "| " + str(row["Region, foto"]) + "\n"
+            # file_table += "| " + str(row["Ort, foto"]) + "\n"
+            # file_table += "| " + str(row["Motivord"]) + "\n"
+            # file_table += "| No 'motivord'\n"
+            # file_table += "|\n"
+            # file_table += "|\n"
+            # file_table += "|-\n"
     
         elif pd.notnull(row["Motivord"]):
             motivord = row["Motivord"]
@@ -294,14 +388,15 @@ for index, row in mexiko.iterrows():
                     if diff == set():
                         # bad_cnt += 1
                         problematic_cnt += 1
-                        file_table += "! " + str(bad_cnt) + "\n" 
-                        file_table += "| " + row["SMVK-EM-link"] + "\n"
-                        file_table += "| " + str(row["Region, foto"]) + "\n"
-                        file_table += "| " + str(row["Ort, foto"]) + "\n"
-                        file_table += "| Motivord' is generic'\n"
-                        file_table += "|\n"
-                        file_table += "|\n"
-                        file_table += "|-\n"
+                        # file_table += "! " + str(bad_cnt) + "\n" 
+                        # file_table += "| " + row["SMVK-EM-link"] + "\n"
+                        # file_table += "| " + str(row["Region, foto"]) + "\n"
+                        # file_table += "| " + str(row["Ort, foto"]) + "\n"
+                        # file_table += "| " + str(row["Motivord"]) + "\n"
+                        # file_table += "| Motivord' is generic'\n"
+                        # file_table += "|\n"
+                        # file_table += "|\n"
+                        # file_table += "|-\n"
                                                         
             
 
@@ -326,10 +421,19 @@ print()
 print("Total number of photos in batch: '''{}'''".format(tot_cnt))
 print()
 print("=== Technically bad photos (below): '''{}''' ===".format(bad_cnt))
+print("Description and Ort, foto are empty: '''{}'''".format(no_desc_and_no_ort))
+print()
+print("Description, Motivord and Ort, foto are empty: '''{}'''".format(no_desc_no_ort_no_motivord))
+print()
+print("Description and Ort, foto are empty and Motivord is generic: '''{}'''".format(no_desc_no_ort_generic_motivord))
+print()
+print("=== Problematic photos (in a separate wikitable): ===")
+print("Description and motivord are empty: '''{}'''".format(no_desc_no_motivord))
+print()
+print()
+print("No 'Description/Beskrivning': '''{}'''".format(no_desc))
 print()
 print("Both 'Motivord' and 'Ort, foto' are empty: '''{}'''".format(empty_ort_and_motivord))
-print()
-print("=== Problematic photos (below): '''{}''' ===".format(problematic_cnt))
 print()
 print("No 'motivord': '''{}'''".format(no_keyword))
 print()
@@ -347,6 +451,8 @@ for token in bad_keywords:
     print("* " + token + ", " + str(motivord_count[token]), end="\n")
 print()
 
+print("'nan' means empty in the table")
+print() 
 print(full_table)
 
 
@@ -354,33 +460,41 @@ print(full_table)
 # Finns Commons-kategori som heter typ Pyramids in Techuacan?
 # pröva Motivord
 
-# In[49]:
+# In[19]:
 
 mexiko.to_pickle("./mexiko_df_final.pickle")
 
 
+# In[20]:
+
+mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
+mexiko
+
+
 # # Inspect that unique filenames gets created
 
-# In[35]:
+# In[21]:
 
 # Field "Motivord", "Beskrivning" and "Ort, foto"
 non_id_names = set()
 for index, row in mexiko.iterrows():
-    if pd.notnull(row["Motivord"] and pd.notnull(row["Beskrivning"]) and pd.notnull(row["Ort, foto"])):
+    if pd.notnull(row["Motivord"]) and pd.notnull(row["Beskrivning"]) and pd.notnull(row["Ort, foto"]):
         motivord = row["Motivord"]
         beskrivning = row["Beskrivning"]
         ort = row["Ort, foto"]
-        non_id_names.add(motivord + beskrivning + ort)
+        tri_combo = motivord + " " + beskrivning + " " + ort
+        non_id_names.add(tri_combo)
+        
 print(len(non_id_names))
+list(non_id_names)[:10]
 
 
-# In[34]:
-
-for fname in non_id_names:
-    print(fname)
+# In[ ]:
 
 
-# In[23]:
+
+
+# In[22]:
 
 # Field "Beskrivning" and "Ort, foto"
 non_id_names = set()
@@ -390,7 +504,7 @@ for index, row in mexiko.iterrows():
 print(len(non_id_names))
 
 
-# In[24]:
+# In[23]:
 
 # Field "Beskrivning" only
 non_id_names = set()
@@ -400,9 +514,18 @@ for index, row in mexiko.iterrows():
 print(len(non_id_names))
 
 
+# # Collect keyword mappings and create dataframes
+# 
+# Keywords for the Mexiko dataset are published as mappingtables on [Commons](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords).
+
+# In[ ]:
+
+
+
+
 # # Create filenames and filenames-mapping file
 
-# In[42]:
+# In[24]:
 
 fname1 = "0307.a.0001.tif"
 fname2 = "0307.a.0002.a.tif"
@@ -411,42 +534,196 @@ print("fname2: {}".format(fname2.split(".")))
 print(fname2[-1].isalpha())
 
 
-# In[60]:
+# In[25]:
+
+def append_new_filename_to_filenames_mapping_file(filenames_file, old_filename, new_filename):
+    filnames_file.write("{}|{}\n".format(old_filename, new_filename))
+    return 
+
+
+# In[172]:
+
+mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
+print("Loaded DataFrame from 'mexiko_df_final.pickle' OK")
+    
+def create_new_filename(row):
+    import pickle
+    
+    # Remove the extension from filename_1_clean
+    fname_parts = row["Fotonummer"].split(".")
+    
+    def create_id_str(fname_parts):
+        id_str = None
+        if len(fname_parts) == 3 and fname_parts[-1]:
+            id_str = fname_parts[2]
+        elif len(fname_parts) == 4 and fname_parts[-1].isalpha():
+            id_str = fname_parts[2] + "." + fname_parts[3]
+        else:
+            print("Something wrong when creating ext and id_str!")
+            print("fname_parts: {}".format(fname_parts))
+            return
+                  #return print("ext: {}\nid_str: {}".format(ext, id_str))
+        return id_str # skip extension, assume all extensions are .tif
+    
+    def construct_new_name_from_dataframe(row, id_str):
+        ext = ".tif"
+        new_fname = ""
+        if pd.notnull(row["Beskrivning"]):
+            new_fname += row["Beskrivning"]
+            new_fname += "_-_"
+            new_fname += "SMVK-EM"
+            new_fname += "_-_"
+            new_fname += id_str
+            
+            new_fname += ext
+            
+        elif pd.isnull(row["Beskrivning"]) and pd.notnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]):
+            new_fname += row["Ort, foto"]
+            new_fname += " "
+            new_fname += row["Motivord"]
+            new_fname += "_-_"
+            new_fname += "SMVK-EM"
+            new_fname += "_-_"
+            new_fname += id_str
+            new_fname += ext
+            
+        else:
+            print("Fotonummer {} could not be created a new filename for".format(row["Fotonummer"]))
+        return new_fname
+    
+    def append_new_filename_to_filenames_mapping_file(filenames_file, old_filename, new_filename):
+        filnames_file.write("{}|{}\n".format(old_filename, new_filename))
+        return 
+    
+    id_str = create_id_str(fname_parts)
+    
+    if id_str:
+        fname = construct_new_name_from_dataframe(row, id_str)
+        return fname
+    else:
+        print("ops!")
+
+
+# In[189]:
+
+def create_infofiles(row):
+    bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
+    outpath = "./infofiles/"
+    infotext = "{{photograph\n"
+    
+    new_filename = create_new_filename(row)
+    
+    lacking_description = False
+    lacking_photographer = False
+    personnamn_not_even = False
+    OK_to_upload = True
+    
+    
+    if pd.notnull(row["Personnamn / fotograf"]):
+        if "Apenes" in row["Personnamn / fotograf"]:
+            infotext +="|photographer       =  " + "[[q:Q5959424|Sigvald Linné]]/Ola Apenes\n"
+        else:
+            infotext += "|photographer       =  " + row["Personnamn / fotograf"].strip() + "\n"
+    if pd.isnull(row["Personnamn / fotograf"]):
+        infotext += "|photographer       =  \n"
+        lacking_photographer = True
+    
+    infotext += "|title              = \n"
+    
+    if pd.notnull(row["Beskrivning"]):
+        if pd.notnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]):
+            infotext += "|description       = {{sv|" + row["Beskrivning"] + " " + row["Ort, foto"] + " " + row["Motivord"] + "}}\n"
+        elif pd.notnull(row["Ort, foto"]) and pd.isnull(row["Motivord"]):
+            infotext += "|description       = {{sv|" + row["Beskrivning"] + " " + row["Ort, foto"] + "}}\n"
+        elif pd.isnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]):
+            infotext += "|description       = {{sv|" + row["Beskrivning"] + " " + row["Motivord"] + "}}\n"
+        elif pd.isnull(row["Ort, foto"]) and pd.isnull(row["Motivord"]):    
+            infotext += "|description       = {{sv|" + row["Beskrivning"] + "}}\n"
+    if pd.isnull(row["Beskrivning"]):
+        lacking_description = True
+        if pd.isnull(row["Ort, foto"]):
+            OK_to_upload = False
+        elif pd.notnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]):
+            infotext += "|description       = {{sv|" + row["Ort, foto"] + " " + row["Motivord"] + "}}\n"
+        
+        
+    
+    depicted_people = ""
+    if pd.notnull(row["Personnamn / avbildad"]):
+        lista = row["Personnamn / avbildad"].split(", ")
+        for i, j in zip(lista[::2], lista[1::2]):
+            if j + " " + i == "Sigvald Linne":
+                depicted_people += "[[q:Q5959424|Sigvald Linné]] "
+            else:
+                depicted_people += j + i + " "
+            
+        infotext += "|depicted people    = " + depicted_people + "\n"
+        
+    if pd.notnull(row["Händelse / var närvarande vid"]):
+        infotext += "|depicted place     = " + row["Händelse / var närvarande vid"] + "\n"
+    
+    if pd.notnull(row["Fotodatum"]):    
+        infotext += "|date               = " + row["Fotodatum"] + "\n"
+
+    infotext += "|medium             = \n"
+    infotext += "|dimensions         = \n"    
+    
+    infotext += "|institution        = {{Institution:Statens museer för världskultur}}\n"
+    
+    infotext += "|department         = [[q:Q1371375|Etnografiska muséet]]\n"
+    
+    infotext += "|references         = \n"
+    infotext += "|object history     = \n"
+    infotext += "|exhibition history = \n"
+    infotext += "|credit line        = \n"
+    infotext += "|inscriptions       = \n"
+    infotext += "|notes              = \n"
+    infotext += "|accession number   = \n"
+    
+    if pd.notnull(row["Fotonummer"]):
+        infotext += "|source             = Original file name, as recieved from SMVK:  <br /> '''" + row["Fotonummer"] +        ".tif'''\n[[SMVK cooperation project|COH]]\n"
+        
+    infotext += "|permission         = {{cc-zero}}\n"
+    infotext += "|other_versions     =\n"
+    infotext += "}}"
+    
+    
+    infotext += "\n"
+    infotext += "\n[[Category:Images_from_SMVK_2016-11]]"
+    
+    if personnamn_not_even:
+        infotext += "\n[[Category:Images_from_SMVK_with_faulty_depicted_persons]]"
+    if lacking_description:
+        infotext += "\n[[Category:Images_from_SMVK_without_full_description]]"
+    if lacking_photographer:
+        infotext += "\n[[Category:Images_from_SMVK_without_photographer]]"
+    
+    if OK_to_upload:
+        #print("new_filename: {} + .info".format(new_filename))
+        outfile = open(outpath + new_filename + ".info","w")
+        outfile.write(infotext)
+        outfile.close()
+        
+    print(infotext)
+    print()
+
+
+# In[190]:
 
 for index, row in mexiko.iterrows():
-    if pd.notnull(row["Beskrivning"]) and pd.notnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]):
-        print("beskr: {}\nOrt: {}\n:Motivord: {}".format(row["Beskrivning"], row["Ort, foto"], row["Motivord"]))
+    create_infofiles(row)
 
 
-# In[50]:
+# In[29]:
 
-def create_filename(filename):
-    import os
-    import pickle
-    # Remove the extension from filename_1_clean
-    fname_parts = filename.split(".")
-    
-    def create_ext_and_id_str(fname_parts):
-        if len(fname_parts) == 4 and fname_parts[-1].isalpha() :
-            ext = fname_parts[-1]
-            id_str = fname_parts[2]
-        elif len(fname_parts) == 5 and fname_parts[-1].isalpha():
-            ext = fname_parts[-1]
-            id_str = fname_parts[2] + "." + fname_parts[3]
-        #return print("ext: {}\nid_str: {}".format(ext, id_str))
-        return ext, id_str
-    ext, id_str = create_ext_and_id_str(fname_parts)
-    
-    mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
-    
-    def construct_new_name_from_dataframe(dataframe):
-        for index, row in dataframe.iterrows():
-            
+filenames_file = open("./mexiko_filenames_mappings.csv","w")
+filenames_file.write("Original|Commons\n")
 
 
-# In[48]:
-
-create_filename(fname2)
+for index, row in mexiko.iterrows():
+    new_filename = create_new_filename(row)
+    append_new_filename_to_filenames_mapping_file(filenames_file, row["Fotonummer"] + ".tif", new_filename)
+    create_infofiles(row)
 
 
 # In[ ]:
@@ -470,20 +747,20 @@ print("Uncategorized images: {} out of {}".format(uncategorized_images, total_im
 
 # # Create metadata dataframe to convert to wikitable
 
-# In[10]:
+# In[ ]:
 
 headers = mexiko.columns.tolist()
 headers
 
 
-# In[11]:
+# In[ ]:
 
 en_headers = ["photo_no","post_no","content_words","desc","country","region","place",
               "ethnic_group_depict","date_of_photo","name_photographer","name_depicted",
              "search_words","event_or_attending_at","url","subcol_desc","wiki_url"]
 
 
-# In[12]:
+# In[ ]:
 
 table_string = ""
 # Declare table
@@ -517,7 +794,7 @@ print(table_string)
 
 # # 
 
-# In[82]:
+# In[ ]:
 
 mexiko.to_csv("enriched_mexiko_metadata_table.csv", index=False)
 
@@ -532,7 +809,7 @@ stopwords_file = open("./stopwords.txt","w")
 for token, count in token_count.most_common(1000):
     stopwords_file.write(token + "\n")
 stopwords_file.close()
-# In[13]:
+# In[ ]:
 
 stopwords = [w.rstrip() for w in open("./stopwords.txt").readlines()]
 stopwords
@@ -542,7 +819,7 @@ stopwords
 
 # The mapping tables are pasted onto [Commons](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords)
 
-# In[14]:
+# In[ ]:
 
 list_of_strings = mexiko.Motivord.values.astype("str")
 chunk_of_strings = "" 
@@ -560,7 +837,7 @@ nyckelord_freq = Counter(nyckelord_list)
 nyckelord_freq.most_common(20)
 
 
-# In[15]:
+# In[ ]:
 
 header = "== Keywords from column '''Motivord''' (as is, separated by comma) ==\n"
 header_row = """{| class="wikitable sortable" style="width: 60%; height: 200px;"
@@ -589,7 +866,7 @@ print(nyckelord_wikitable)
 
 # ## Column "Beskrivning"
 
-# In[16]:
+# In[ ]:
 
 ####### Unigrams ##############
 clean_tokens_list = []
@@ -647,7 +924,7 @@ print("Bigrams:\n{}".format(sorted_clean_bigram_dict))
 # single words
 
 
-# In[17]:
+# In[ ]:
 
 header = "== Keywords from column '''Beskrivning''' (två-ordskombinationer) ==\n"
 header_row = """{| class="wikitable sortable" style="width: 60%; height: 200px;"
@@ -680,7 +957,7 @@ print()
 print(nyckelord_wikitable)
 
 
-# In[18]:
+# In[ ]:
 
 header = "== Keywords from column '''Beskrivning''' (word-by-word) ==\n"
 header_row = """{| class="wikitable sortable" style="width: 60%; height: 200px;"
@@ -713,12 +990,12 @@ print(nyckelord_wikitable)
 
 # # Column "Sökord"
 
-# In[19]:
+# In[ ]:
 
 mexiko.Sökord.value_counts()
 
 
-# In[120]:
+# In[ ]:
 
 sokord_count = Counter()
 
@@ -744,25 +1021,25 @@ sokord_count.most_common()
 
 # # Create mapping list for places - columns "Ort, foto", "Region, foto"
 
-# In[29]:
+# In[ ]:
 
 res = "Estado de Oaxaca, Oaxaca".partition(",")
 res
 
 
-# In[38]:
+# In[ ]:
 
 res = "Villahermosa".split(",")
 res[-1]
 
 
-# In[40]:
+# In[ ]:
 
 res = "Chichén Itzá, Dzitas".split(",")
 res[-1].strip()
 
 
-# In[55]:
+# In[ ]:
 
 place_counter = Counter()
 for index, row in mexiko.iterrows():
@@ -780,7 +1057,7 @@ for index, row in mexiko.iterrows():
 place_counter.most_common()
 
 
-# In[61]:
+# In[ ]:
 
 place_table = ""
 place_table += """{| class="wikitable"
@@ -800,6 +1077,22 @@ place_table += "|}"
 print(place_table)
 
 
+# # Create mapping list for depicted persons
+# The mapping list is located on [Commons](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_depicted_persons)
+
+# In[53]:
+
+all_names = set()
+for index, row in mexiko.iterrows():
+    if pd.notnull(row["Personnamn / avbildad"]):
+        lista = row["Personnamn / avbildad"].split(", ")
+        for i,j in zip(lista[::2],lista[1::2]):
+            print(i,j)
+#for name in all_names:
+#    print(all_names)
+all_names
+
+
 # # 2. Create new filenames for the images
 $ cypern.columns
 
@@ -808,7 +1101,7 @@ Index(['Fotonummer', 'Postnr.', 'Nyckelord', 'Beskrivning', 'Land, foto',
        'Personnamn / fotograf', 'Personnamn / avbildad', 'Sökord',
        'Händelse / var närvarande vid', 'Länk'],
       dtype='object')
-# In[10]:
+# In[ ]:
 
 def save_filename_to_filename_file(filname_file, filename):
     """Create a file mapping original filenames and their folders with new
@@ -821,7 +1114,7 @@ def save_filename_to_filename_file(filname_file, filename):
     filenames_file.write("{}|{}|{}\n".format(row["Folder"],row["Filename"],filename))
 
 
-# In[11]:
+# In[ ]:
 
 def get_foldernames_and_filenames(inpath):
     
