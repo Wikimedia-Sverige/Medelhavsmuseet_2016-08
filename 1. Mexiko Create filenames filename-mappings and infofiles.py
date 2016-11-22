@@ -1,6 +1,16 @@
 
 # coding: utf-8
 
+# In[7]:
+
+get_ipython().system('pip install https://github.com/lokal-profil/BatchUploadTools/tarball/0.0.1')
+
+
+# In[1]:
+
+import batchupload.helpers as helpers
+
+
 # In[1]:
 
 import pandas as pd
@@ -465,10 +475,33 @@ print(full_table)
 mexiko.to_pickle("./mexiko_df_final.pickle")
 
 
-# In[20]:
+# In[3]:
 
 mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
 mexiko
+
+
+# # Statistics: Not OK_to_upload
+
+# In[6]:
+
+bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
+no_ort = 0
+no_ort_and_generic_motivord = 0
+no_ort_no_motivord = 0
+
+for index, row in mexiko.iterrows():
+    if pd.isnull(row["Beskrivning"]) and pd.isnull(row["Ort, foto"]):
+        no_ort += 1
+        if pd.notnull(row["Motivord"]):
+            sep_motivord = [token.strip() for token in row["Motivord"].split(",")]
+            diff = set(sep_motivord) - set(bad_keywords)
+            if diff == set(): # Technically bad photos
+                no_ort_and_generic_motivord += 1
+        elif pd.isnull(row["Motivord"]):
+            no_ort_no_motivord += 1
+                
+print("no ort: {}\nno ort plus generic motivord: {}\nno ort, no motivord: {}".format(no_ort, no_ort_and_generic_motivord, no_ort_no_motivord))
 
 
 # # Inspect that unique filenames gets created
