@@ -8,33 +8,17 @@ get_ipython().system('pip install https://github.com/lokal-profil/BatchUploadToo
 
 # In[1]:
 
-import batchupload.helpers as helpers
-
-
-# In[1]:
-
 import pandas as pd
 from collections import Counter
 import os
-from textblob import TextBlob
 import regex
-import operator
 import pickle
-
-# For bigrams creation
-import nltk
-from nltk import word_tokenize
-from nltk.util import ngrams
+import batchupload.helpers as helpers
 
 mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
 
 
-# In[2]:
-
-pd.describe_option()
-
-
-# In[3]:
+# In[63]:
 
 pd.set_option('display.max_rows', 5)
 pd.set_option('max_seq_items', 10)
@@ -96,16 +80,6 @@ motivord_count.most_common(10)
 # ## Add sub-collection metadata field "description"
 # 
 # * Add these to the final images in the infobox
-
-# In[8]:
-
-a_str = "1234.j.345432"
-
-
-# In[9]:
-
-a_str.partition(".")
-
 
 # In[10]:
 
@@ -184,9 +158,9 @@ for index, row in mexiko.iterrows():
 mexiko
 
 
-# In[15]:
+# In[4]:
 
-mexiko.loc[0,"SMVK-EM-link"]
+mexiko[mexiko["subcol_desc"].str.contains("boskap")]
 
 
 # # Create list of badly filled out meatdata for WMMX
@@ -214,7 +188,7 @@ for index, row in mexiko.iterrows():
         print("Generic 'Motivord': {} but 'Ort, foto' is: {}".format(row["Motivord"], row["Ort, foto"]))
 
 
-# In[18]:
+# In[64]:
 
 bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
 
@@ -475,7 +449,7 @@ print(full_table)
 mexiko.to_pickle("./mexiko_df_final.pickle")
 
 
-# In[3]:
+# In[6]:
 
 mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
 mexiko
@@ -522,11 +496,6 @@ print(len(non_id_names))
 list(non_id_names)[:10]
 
 
-# In[ ]:
-
-
-
-
 # In[22]:
 
 # Field "Beskrivning" and "Ort, foto"
@@ -551,9 +520,23 @@ print(len(non_id_names))
 # 
 # Keywords for the Mexiko dataset are published as mappingtables on [Commons](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords).
 
-# In[ ]:
+# In[53]:
+
+kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords"
+kw_maps_list = pd.read_html(kw_maps_url, attrs = {"class":"wikitable"}, header=0)
+motivord = kw_maps_list[0]
+beskr_bi = kw_maps_list[1]
+beskr_uni = kw_maps_list[2]
+kw_maps = pd.concat([motivord,beskr_bi,beskr_uni])
+#kw_maps = kw_maps.dropna()
+print(len(kw_maps))
+kw_maps = kw_maps[:][(pd.notnull(kw_maps["wikidata"])) & (pd.notnull(kw_maps["category"]))] # 33 at 2016-11-24
+kw_maps
 
 
+# In[52]:
+
+len(kw_maps[:][(pd.notnull(kw_maps["wikidata"])) & (pd.notnull(kw_maps["category"]))])
 
 
 # # Create filenames and filenames-mapping file
@@ -567,14 +550,14 @@ print("fname2: {}".format(fname2.split(".")))
 print(fname2[-1].isalpha())
 
 
-# In[25]:
+# In[14]:
 
 def append_new_filename_to_filenames_mapping_file(filenames_file, old_filename, new_filename):
     filnames_file.write("{}|{}\n".format(old_filename, new_filename))
     return 
 
 
-# In[172]:
+# In[65]:
 
 mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
 print("Loaded DataFrame from 'mexiko_df_final.pickle' OK")
@@ -622,7 +605,16 @@ def create_new_filename(row):
             
         else:
             print("Fotonummer {} could not be created a new filename for".format(row["Fotonummer"]))
+        print("type(new_fname): {}".format(type(new_fname)))
         return new_fname
+    
+    def compose_description(row):
+        description = ""
+        if pd.notnull(row["Beskrivning"]):
+            description += row["Beskrivning"]
+        if pd.isnull(row["Beskrivning"]) and pd.notnull(row["Händelse / var närvarande vid"]):
+            description += row["Händelse / var närvarande vid"]
+        return description
     
     def append_new_filename_to_filenames_mapping_file(filenames_file, old_filename, new_filename):
         filnames_file.write("{}|{}\n".format(old_filename, new_filename))
@@ -631,13 +623,18 @@ def create_new_filename(row):
     id_str = create_id_str(fname_parts)
     
     if id_str:
-        fname = construct_new_name_from_dataframe(row, id_str)
+        #fname = construct_new_name_from_dataframe(row, id_str)
+        description = compose_description(row)
+        checked_fname = helpers.format_filename(description, "SMVK", id_str)
+        print("fname: {}\nchecked_fname: {}\n".format(fname, checked_fname))
         return fname
     else:
         print("ops!")
+    
+    return 
 
 
-# In[189]:
+# In[66]:
 
 def create_infofiles(row):
     bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
@@ -649,12 +646,15 @@ def create_infofiles(row):
     lacking_description = False
     lacking_photographer = False
     personnamn_not_even = False
+    linne_category = False
     OK_to_upload = True
     
     
     if pd.notnull(row["Personnamn / fotograf"]):
         if "Apenes" in row["Personnamn / fotograf"]:
             infotext +="|photographer       =  " + "[[q:Q5959424|Sigvald Linné]]/Ola Apenes\n"
+        elif "Sigvald" in row["Personnamn / fotograf"]:
+            linne_category == True
         else:
             infotext += "|photographer       =  " + row["Personnamn / fotograf"].strip() + "\n"
     if pd.isnull(row["Personnamn / fotograf"]):
@@ -686,10 +686,11 @@ def create_infofiles(row):
         lista = row["Personnamn / avbildad"].split(", ")
         for i, j in zip(lista[::2], lista[1::2]):
             if j + " " + i == "Sigvald Linne":
+                linne_category = True
                 depicted_people += "[[q:Q5959424|Sigvald Linné]] "
             else:
-                depicted_people += j + i + " "
-            
+                depicted_people += j + " " + i + "/"
+        depicted_people.rstrip("/")    
         infotext += "|depicted people    = " + depicted_people + "\n"
         
     if pd.notnull(row["Händelse / var närvarande vid"]):
@@ -730,6 +731,12 @@ def create_infofiles(row):
         infotext += "\n[[Category:Images_from_SMVK_without_full_description]]"
     if lacking_photographer:
         infotext += "\n[[Category:Images_from_SMVK_without_photographer]]"
+    if linne_category == True:
+        infotext += "\n[[Category:Sigvald_Linné]]"
+        
+    for index, kw in kw_maps.iterrows():
+        if row["Beskrivning"].str.contains(kw["keyword"]):
+            print("Beskrivnig: {}\nkw found {}\n".format(row["Beskrivning"], kw["keyword"]))
     
     if OK_to_upload:
         #print("new_filename: {} + .info".format(new_filename))
@@ -741,17 +748,22 @@ def create_infofiles(row):
     print()
 
 
-# In[190]:
+# In[67]:
 
 for index, row in mexiko.iterrows():
     create_infofiles(row)
 
 
-# In[29]:
+# In[68]:
+
+import importlib
+importlib.reload(helpers)
+
+
+# In[12]:
 
 filenames_file = open("./mexiko_filenames_mappings.csv","w")
 filenames_file.write("Original|Commons\n")
-
 
 for index, row in mexiko.iterrows():
     new_filename = create_new_filename(row)
@@ -776,354 +788,6 @@ for row_index, row in mexiko.iterrows():
     #print("Stats: \nTotal images {}\nOK images {}\nUncategorized images {}\nImages missing author {}".format(total_images, OK_images - faulty_images, uncategorized_images, faulty_images ))
 #print("Total Stats: \nTotal images {}\nOK images {}\nUncategorized images {}\nImages missing author {}".format(total_images, OK_images - faulty_images, uncategorized_images, faulty_images ))
 print("Uncategorized images: {} out of {}".format(uncategorized_images, total_images))
-
-
-# # Create metadata dataframe to convert to wikitable
-
-# In[ ]:
-
-headers = mexiko.columns.tolist()
-headers
-
-
-# In[ ]:
-
-en_headers = ["photo_no","post_no","content_words","desc","country","region","place",
-              "ethnic_group_depict","date_of_photo","name_photographer","name_depicted",
-             "search_words","event_or_attending_at","url","subcol_desc","wiki_url"]
-
-
-# In[ ]:
-
-table_string = ""
-# Declare table
-table_header = """{| class="wikitable"
-|-
-"""
-table_string += table_header
-
-# Column headers
-for header in en_headers:
-    table_string += "! " + header + "\n"
-table_string += "|-\n"
-
-iter_limit = 3 # for testing purpose
-for index, row in mexiko.iterrows():
-    if index < iter_limit:
-        for col in headers:
-            table_string += "| " + str(row[col]) + "\n"
-        table_string += "|-\n"
-    else:
-        break
-    
-# Close table
-table_string += "|}"
-print(table_string)
-
-
-# for row in mexiko.itertuples()[:3]:
-#     print(row)
-#     
-
-# # 
-
-# In[ ]:
-
-mexiko.to_csv("enriched_mexiko_metadata_table.csv", index=False)
-
-
-# # 1. Create category/wikidata mapping tables
-# 
-# [place mappings](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/places_mappings)
-# 
-# [Mexiko keywords](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords)
-# 
-stopwords_file = open("./stopwords.txt","w")
-for token, count in token_count.most_common(1000):
-    stopwords_file.write(token + "\n")
-stopwords_file.close()
-# In[ ]:
-
-stopwords = [w.rstrip() for w in open("./stopwords.txt").readlines()]
-stopwords
-
-
-# ## Column "Motivord"
-
-# The mapping tables are pasted onto [Commons](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords)
-
-# In[ ]:
-
-list_of_strings = mexiko.Motivord.values.astype("str")
-chunk_of_strings = "" 
-
-for string in list_of_strings:
-    clean_string = regex.sub("[\"\'\.\!\?\:\(\),;]| - ","",string) # remove .'s
-    chunk_of_strings += " " + clean_string
-
-#chunk_of_strings # separated by ","
-
-nyckelord_list = [phrase.strip() for phrase in chunk_of_strings.split(" ") if phrase not in stopwords]
-#print(nyckelord_list[:10])
-
-nyckelord_freq = Counter(nyckelord_list)
-nyckelord_freq.most_common(20)
-
-
-# In[ ]:
-
-header = "== Keywords from column '''Motivord''' (as is, separated by comma) ==\n"
-header_row = """{| class="wikitable sortable" style="width: 60%; height: 200px;"
-! Motivord
-! frequency
-! category
-! wikidata
-|-\n"""
-
-data_rows = []
-for kw, count in  nyckelord_freq.most_common(50): # original 12 stops at 4 occurances of "bad"
-    nyckelord = "| " + kw + "\n"
-    
-    freq = "| " + str(count) + "\n"
-    the_rest = "| \n| \n|-"
-        
-    row = nyckelord + freq + the_rest
-    
-    data_rows.append(row)
-        
-table_ending = "\n|}"
-#print(data_rows)
-nyckelord_wikitable = header + header_row + "\n".join(data_rows) + table_ending
-print(nyckelord_wikitable)
-
-
-# ## Column "Beskrivning"
-
-# In[ ]:
-
-####### Unigrams ##############
-clean_tokens_list = []
-mega_string = ""
-list_of_strings = []
-for string in mexiko.Beskrivning.values.astype("str"):
-    mega_string += " " +string
-    clean_string = regex.sub("[\"\”\'\.\!\?\:\,\(\);]| - "," ",string) # remove .'s
-    #print(clean_string)
-    tokens = clean_string.split(" ")
-    clean_tokens = [word for word in tokens] # if word not in stopwords
-    #print(clean_tokens)
-    for token in clean_tokens:
-        clean_tokens_list.append(token)
-    clean_string = " ".join(clean_tokens)
-    clean_ended_string = clean_string + "." # add .'s again!
-
-    list_of_strings.append(clean_ended_string)
-    
-#print("clean_tokens_list:\n{}".format(clean_tokens_list))
-token_count = Counter(clean_tokens_list)
-
-####### Bigrams ##############
-chunk_of_strings = "" 
-chunk_of_strings += list_of_strings[0]
-for string in list_of_strings[1:]:
-    if string not in stopwords:
-        chunk_of_strings += " " + string
-
-### Bigrams second approach (to avoid bigrams made of end-word + first word next sentence)
-token = nltk.word_tokenize(chunk_of_strings)
-bigrams = ngrams(token,2)
-bigrams_counter = Counter(bigrams)
-
-clean_bigram_dict = {}
-for each_tuple, freq in bigrams_counter.items():
-    #print(each_tuple)
-    w1, w2 = each_tuple
-    forbidden_chars = set([",","."])
-    if w1 in forbidden_chars or w2 in forbidden_chars:
-        continue
-    elif freq > 3:
-        clean_bigram_dict[w1 + " " + w2] = freq
-    else:
-        continue
-#print(type(bigrams_counter))
-#print(list(bigrams_counter)[:2])
-sorted_clean_bigram_dict = sorted(clean_bigram_dict.items(), key=operator.itemgetter(1), reverse=True)
-print("Token count:\n{}".format(token_count.most_common(1000)))
-print()
-print("Bigrams:\n{}".format(sorted_clean_bigram_dict))
-#for bigram in sorted_clean_bigram_dict:
-#    print(bigram)
-
-# single words
-
-
-# In[ ]:
-
-header = "== Keywords from column '''Beskrivning''' (två-ordskombinationer) ==\n"
-header_row = """{| class="wikitable sortable" style="width: 60%; height: 200px;"
-! Två-ordskombination
-! frequency
-! category
-! wikidata
-|-\n"""
-
-data_rows = []
-for kw, count in sorted_clean_bigram_dict: 
-    w1, w2 = kw.split()
-    #print("w1: {} w2: {}".format(w1,w2))
-    if w1 in stopwords or w2 in stopwords:
-        print("Forbidden bigram: {}".format(kw))
-    else:
-        nyckelord = "| " + kw + "\n"
-    
-        freq = "| " + str(count) + "\n"
-        the_rest = "| \n| \n|-"
-        
-        row = nyckelord + freq + the_rest
-    
-        data_rows.append(row)
-        
-table_ending = "\n|}"
-#print(data_rows)
-nyckelord_wikitable = header + header_row + "\n".join(data_rows) + table_ending
-print()
-print(nyckelord_wikitable)
-
-
-# In[ ]:
-
-header = "== Keywords from column '''Beskrivning''' (word-by-word) ==\n"
-header_row = """{| class="wikitable sortable" style="width: 60%; height: 200px;"
-! Ord
-! frequency
-! category
-! wikidata
-|-\n"""
-
-data_rows = []
-for kw, count in token_count.most_common(500): # original 50 stops at 3 occurances of "H"
-    if kw in stopwords:
-        print("Forbidden unigram: {}".format(kw))
-    elif count >= 3:
-        nyckelord = "| " + kw + "\n"
-    
-        freq = "| " + str(count) + "\n"
-        the_rest = "| \n| \n|-"
-        
-        row = nyckelord + freq + the_rest
-    
-        data_rows.append(row)
-    
-table_ending = "\n|}"
-#print(data_rows)
-nyckelord_wikitable = header + header_row + "\n".join(data_rows) + table_ending
-print()
-print(nyckelord_wikitable)
-
-
-# # Column "Sökord"
-
-# In[ ]:
-
-mexiko.Sökord.value_counts()
-
-
-# In[ ]:
-
-sokord_count = Counter()
-
-for index, value in mexiko.Sökord.iteritems():
-    tokens = str(value).split(",")
-    clean_tokens = [token.strip() for token in tokens]
-    for token in clean_tokens:
-        sokord_count[token] += 1
-sokord_count.most_common()
-
-
-# In[ ]:
-
-# unigram "Motivord"
-nyckelord_freq.most_common(50)
-# unigram "Beskrivning"
-token_count.most_common(1000)
-# bigram "Beskrivning"
-sorted_clean_bigram_dict
-# uni- and bigrams "Sökord"
-sokord_count.most_common()
-
-
-# # Create mapping list for places - columns "Ort, foto", "Region, foto"
-
-# In[ ]:
-
-res = "Estado de Oaxaca, Oaxaca".partition(",")
-res
-
-
-# In[ ]:
-
-res = "Villahermosa".split(",")
-res[-1]
-
-
-# In[ ]:
-
-res = "Chichén Itzá, Dzitas".split(",")
-res[-1].strip()
-
-
-# In[ ]:
-
-place_counter = Counter()
-for index, row in mexiko.iterrows():
-    if not pd.isnull(row["Ort, foto"]):
-        place = row["Ort, foto"].split(",")[-1].strip()
-        #print("full: {}\n place: {}\n".format(row["Ort, foto"], place))
-        place_counter[place] += 1
-    elif pd.isnull(row["Ort, foto"]) and pd.notnull(row["Region, foto"]): # city/village/place not specified, but
-        place = row["Region, foto"].split(",")[-1].strip()
-        #print("full: {}\n place: {}\n".format(row["Region, foto"], place))
-        place_counter[place] += 1
-    else: # neither place nor region is specified
-        place_counter["n/a"] += 1
-        #print("No region or place! Fotonummer: {}".format(row["Fotonummer"]))
-place_counter.most_common()
-
-
-# In[ ]:
-
-place_table = ""
-place_table += """{| class="wikitable"
-|-
-! Place
-! Frequency
-! Commons cat
-! Wikidata item
-|-
-"""
-
-for place, freq in place_counter.most_common():
-    #print(place, freq)
-    place_table += "| " + str(place) + "\n| " + str(freq) + "\n|\n|\n|-\n" 
-
-place_table += "|}"
-print(place_table)
-
-
-# # Create mapping list for depicted persons
-# The mapping list is located on [Commons](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_depicted_persons)
-
-# In[53]:
-
-all_names = set()
-for index, row in mexiko.iterrows():
-    if pd.notnull(row["Personnamn / avbildad"]):
-        lista = row["Personnamn / avbildad"].split(", ")
-        for i,j in zip(lista[::2],lista[1::2]):
-            print(i,j)
-#for name in all_names:
-#    print(all_names)
-all_names
 
 
 # # 2. Create new filenames for the images
