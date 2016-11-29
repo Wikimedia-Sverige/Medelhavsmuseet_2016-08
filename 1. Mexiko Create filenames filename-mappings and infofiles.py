@@ -3,22 +3,12 @@
 
 # In[2]:
 
-get_ipython().system('pip install https://github.com/lokal-profil/BatchUploadTools/tarball/0.0.1')
-
-
-# In[1]:
-
-get_ipython().system('pip install --process-dependency-links https://github.com/lokal-profil/BatchUploadTools/tree/py3compat')
-
-
-# In[1]:
-
-import pywikibot
-import pywikibot.version
+get_ipython().system('pip install --process-dependency-links git+https://github.com/lokal-profil/BatchUploadTools.git@py3compat')
 
 
 # In[2]:
 
+from batchupload import helpers
 import pandas as pd
 from collections import Counter
 import os
@@ -180,7 +170,7 @@ print("no ort: {}\nno ort plus generic motivord: {}\nno ort, no motivord: {}".fo
 # 
 # Keywords for the Mexiko dataset are published as mappingtables on [Commons](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords).
 
-# In[5]:
+# In[19]:
 
 kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords"
 kw_maps_list = pd.read_html(kw_maps_url, attrs = {"class":"wikitable"}, header=0)
@@ -189,14 +179,10 @@ beskr_bi = kw_maps_list[1]
 beskr_uni = kw_maps_list[2]
 kw_maps = pd.concat([motivord,beskr_bi,beskr_uni])
 #kw_maps = kw_maps.dropna()
-print(len(kw_maps))
+print("tot: {} keywords".format(len(kw_maps)))
+print("filled in: {}".format(len(kw_maps[:][(pd.notnull(kw_maps["wikidata"])) & (pd.notnull(kw_maps["category"]))])))
 kw_maps = kw_maps[:][(pd.notnull(kw_maps["wikidata"])) & (pd.notnull(kw_maps["category"]))] # 33 at 2016-11-24
-kw_maps
-
-
-# In[6]:
-
-len(kw_maps[:][(pd.notnull(kw_maps["wikidata"])) & (pd.notnull(kw_maps["category"]))])
+kw_maps.head()
 
 
 # # Create filenames and filenames-mapping file
@@ -276,15 +262,16 @@ def create_new_filename(row, filenames_file):
     id_str = create_id_str(fname_parts)
     #print("id_str: {}".format(id_str))
     if id_str:
-        fname = construct_new_name_from_dataframe(row, id_str) # without using BatchUploadTools
-        append_new_filename_to_filenames_mapping_file(filenames_file, old_filename, fname)
-        return fname
+        ########## Not using BatchUploadTools ###############################
+        #fname = construct_new_name_from_dataframe(row, id_str) # without using BatchUploadTools
+        #append_new_filename_to_filenames_mapping_file(filenames_file, old_filename, fname)
+        #print("fname: {}\nchecked_fname: {}\n".format(fname, checked_fname))
+        #return fname
         
         ########## Using BatchUploadTools ####################################
-        # description = compose_description(row)
-        # checked_fname = helpers.format_filename(description, "SMVK", id_str)
-        #print("fname: {}\nchecked_fname: {}\n".format(fname, checked_fname))
-        #return checked_fname
+        description = compose_description(row)
+        checked_fname = helpers.format_filename(description, "SMVK", id_str)
+        return checked_fname
         
     else:
         return print("Could not create a new filename for photo: {}".format(row["Fotonummer"]))
@@ -292,7 +279,7 @@ def create_new_filename(row, filenames_file):
 
 # Infobox mapping is available on [Phabricator](https://phabricator.wikimedia.org/T144485)
 
-# In[ ]:
+# In[38]:
 
 def create_infofiles(row, filenames_file):
     bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
@@ -307,8 +294,7 @@ def create_infofiles(row, filenames_file):
     linne_category = False
     content_categories = False
     OK_to_upload = True
-    
-    
+    no_content_categories = 0
     
     if pd.notnull(row["Personnamn / fotograf"]):
         if "Apenes" in row["Personnamn / fotograf"]:
@@ -389,11 +375,31 @@ def create_infofiles(row, filenames_file):
         #print(kw["keyword"])
         patt = regex.compile(r"\b" + kw["keyword"] + r"\b", regex.I)
         #print(patt)
+        
+        
         if pd.notnull(row["Beskrivning"]):
             if patt.search(row["Beskrivning"]):
-                content_categories = True
                 #print("Beskrivnig: {}\nkw found {}\n".format(row["Beskrivning"], kw["keyword"]))
-                content_categories_set.add("[[" + kw["keyword"] + "]]") 
+                if pd.notnull(kw["category"]) and kw["category"] != "-":
+                    content_categories = True
+                    content_categories_set.add("[[" + kw["category"] + "]]") 
+        
+        if pd.notnull(row["Motivord"]):
+            list_of_motivord = row["Motivord"].split(", ")
+            for motivord in list_of_motivord:
+                if patt.search(motivord):
+                    if pd.notnull(kw["category"]) and kw["category"] != "-":
+                        content_categories = True
+                        content_categories_set.add("[[" + kw["category"] + "]]") 
+                    
+        if pd.notnull(row["Sökord"]):
+            list_of_sokord = row["Sökord"].split(", ")
+            for sokord in list_of_sokord:
+                if patt.search(sokord):
+                    if pd.notnull(kw["category"]) and kw["category"] != "-":
+                        content_categories = True
+                        content_categories_set.add("[[" + kw["category"] + "]]") 
+    #print("content_categories_set: \n{}".format(content_categories_set))
     
     if personnamn_not_even:
         infotext += "\n[[Category:Images_from_SMVK_with_faulty_depicted_persons]]"
@@ -409,6 +415,10 @@ def create_infofiles(row, filenames_file):
         for content_category in content_categories_set:
             content_categories_string += "\n" + content_category
         infotext += "\n" + content_categories_string
+    else:
+        no_content_categories += 1
+        infotext += "\n[[Images_from_SMVK-EM_without_content_categories]]"
+        OK_to_upload = False
     
     if OK_to_upload:
         #print(OK_to_upload)
@@ -421,7 +431,7 @@ def create_infofiles(row, filenames_file):
     print(infotext)
     print()
     
-    return 
+    return no_content_categories
 
 
 # In[ ]:
@@ -430,12 +440,18 @@ mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
 print("Loaded DataFrame from 'mexiko_df_final.pickle' OK")
 filenames_file = open("./mexiko_filenames_mappings.csv","w")
 filenames_file.write("Original|Commons\n")
-    
+no_content_categories = 0
 for row_index, row in mexiko.iterrows():
-    create_infofiles(row, filenames_file)
+    no_content_category = create_infofiles(row, filenames_file)
+    no_content_categories += no_content_category
     #print("Stats: \nTotal images {}\nOK images {}\nUncategorized images {}\nImages missing author {}".format(total_images, OK_images - faulty_images, uncategorized_images, faulty_images ))
 #print("Total Stats: \nTotal images {}\nOK images {}\nUncategorized images {}\nImages missing author {}".format(total_images, OK_images - faulty_images, uncategorized_images, faulty_images ))
-print("Uncategorized images: {} out of {}".format(uncategorized_images, total_images))
+print("Uncategorized images: {}".format(no_content_categories))
+
+
+# In[29]:
+
+"-" == "-"
 
 
 # In[ ]:
