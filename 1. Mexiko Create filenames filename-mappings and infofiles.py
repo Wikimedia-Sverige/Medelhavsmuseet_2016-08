@@ -6,7 +6,7 @@
 get_ipython().system('pip install --process-dependency-links git+https://github.com/lokal-profil/BatchUploadTools.git@py3compat')
 
 
-# In[2]:
+# In[1]:
 
 from batchupload import helpers
 import pandas as pd
@@ -19,7 +19,7 @@ import pickle
 mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
 
 
-# In[2]:
+# In[41]:
 
 pd.set_option('display.max_rows', 5)
 pd.set_option('max_seq_items', 10)
@@ -170,7 +170,7 @@ print("no ort: {}\nno ort plus generic motivord: {}\nno ort, no motivord: {}".fo
 # 
 # Keywords for the Mexiko dataset are published as mappingtables on [Commons](https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords).
 
-# In[19]:
+# In[4]:
 
 kw_maps_url = "https://commons.wikimedia.org/wiki/Commons:Medelhavsmuseet/batchUploads/Mexiko_keywords"
 kw_maps_list = pd.read_html(kw_maps_url, attrs = {"class":"wikitable"}, header=0)
@@ -187,7 +187,7 @@ kw_maps.head()
 
 # # Create filenames and filenames-mapping file
 
-# In[16]:
+# In[22]:
 
 def create_new_filename(row, filenames_file):
     import pickle
@@ -270,7 +270,7 @@ def create_new_filename(row, filenames_file):
         
         ########## Using BatchUploadTools ####################################
         description = compose_description(row)
-        checked_fname = helpers.format_filename(description, "SMVK", id_str)
+        checked_fname = helpers.format_filename(description, "SMVK", row["Fotonummer"]) # skip id_str, since not unique
         return checked_fname
         
     else:
@@ -279,9 +279,9 @@ def create_new_filename(row, filenames_file):
 
 # Infobox mapping is available on [Phabricator](https://phabricator.wikimedia.org/T144485)
 
-# In[38]:
+# In[23]:
 
-def create_infofiles(row, filenames_file):
+def create_infofiles(row, filenames_file, not_ok_file):
     bad_keywords = ["pyramid","tempel","Ciudadela","tempelpyramid", "tempelpyramider","ruiner","fornlämningar"]
     outpath = "./infofiles/"
     infotext = "{{photograph\n"
@@ -305,7 +305,7 @@ def create_infofiles(row, filenames_file):
             infotext += "|photographer       =  " + row["Personnamn / fotograf"].strip() + "\n"
     if pd.isnull(row["Personnamn / fotograf"]):
         if row["Personnamn / fotograf"] == "Linné, Sigvald": # not all cases
-            infotext += "|photographer       =  "+ "{{creator|Sigvald_Linné}}\n" 
+            infotext += "|photographer       =  "+ "{{creator:Sigvald_Linné}}\n" 
         lacking_photographer = True
     
     infotext += "|title              = \n"
@@ -335,8 +335,8 @@ def create_infofiles(row, filenames_file):
                 depicted_people += "[[q:Q5959424|Sigvald Linné]] "
             else:
                 depicted_people += j + " " + i + "/"
-        depicted_people.rstrip("/")    
-        infotext += "|depicted people    = " + depicted_people + "\n"
+    depicted_people = depicted_people.rstrip("/") 
+    infotext += "|depicted people    = " + depicted_people + "\n"
         
     if pd.notnull(row["Händelse / var närvarande vid"]):
         infotext += "|depicted place     = " + row["Händelse / var närvarande vid"] + "\n"
@@ -360,16 +360,14 @@ def create_infofiles(row, filenames_file):
     infotext += "|accession number   = \n"
     
     if pd.notnull(row["Fotonummer"]):
-        infotext += "|source             = Original file name, as recieved from SMVK:  <br /> '''" + row["Fotonummer"] +        ".tif'''\n[[SMVK cooperation project|COH]]\n"
+        infotext += "|source             = Original file name, as recieved from SMVK:  <br /> '''" + row["Fotonummer"] +        ".tif'''\n{{SMVK_cooperation_project|COH}}\n"
         
     infotext += "|permission         = {{cc-zero}}\n"
     infotext += "|other_versions     =\n"
     infotext += "}}"
     
-    
-    infotext += "\n"
-    infotext += "\n[[Category:Images_from_SMVK_2016-11]]"
-    
+    # categories
+    categories = "[[Category:Linné_expedition_at_Teotihuacan_Mexico_1932]]"
     content_categories_set = set()
     for index, kw in kw_maps.iterrows():
         #print(kw["keyword"])
@@ -401,57 +399,91 @@ def create_infofiles(row, filenames_file):
                         content_categories_set.add("[[" + kw["category"] + "]]") 
     #print("content_categories_set: \n{}".format(content_categories_set))
     
-    if personnamn_not_even:
-        infotext += "\n[[Category:Images_from_SMVK_with_faulty_depicted_persons]]"
-    if lacking_description:
-        infotext += "\n[[Category:Images_from_SMVK_without_full_description]]"
-    if lacking_photographer:
-        infotext += "\n[[Category:Images_from_SMVK_without_photographer]]"
-    if linne_category == True:
-        infotext += "\nCategory:Sigvald_Linné]]"
-    
     content_categories_string = ""    
     if content_categories:
         for content_category in content_categories_set:
             content_categories_string += "\n" + content_category
-        infotext += "\n" + content_categories_string
+        categories += "\n" + content_categories_string
+        
     else:
         no_content_categories += 1
-        infotext += "\n[[Images_from_SMVK-EM_without_content_categories]]"
+        categories += "\n[[Images_from_SMVK-EM_without_content_categories]]"
         OK_to_upload = False
+    
+    if personnamn_not_even:
+        categories += "\n[[Category:Images_from_SMVK_with_faulty_depicted_persons]]"
+    if lacking_description:
+        categories += "\n[[Category:Images_from_SMVK_without_full_description]]"
+    if lacking_photographer:
+        categories += "\n[[Category:Images_from_SMVK_without_photographer]]"
+    if linne_category:
+        categories += "\n[[Category:Sigvald_Linné]]"
+    
+    categories.lstrip()
     
     if OK_to_upload:
         #print(OK_to_upload)
         #print("new_filename: {} + .info".format(new_filename))
         outfile = open(outpath + new_filename + ".info","w")
-        outfile.write(infotext)
+        outfile.write(infotext + "\n" + categories)
         outfile.close()
+    else:
+        not_ok_row = ""
+        link = "| " + str(row["SMVK-EM-link"]) + "\n"
+        desc = "| " + str(row["Beskrivning"]) + "\n"
+        place = "| " + str(row["Ort, foto"]) + "\n"
+        motif = "| " + str(row["Motivord"]) + "\n"
+        person = "| " + str(row["Personnamn / avbildad"]) + "\n"
+        searchw = "| " + str(row["Sökord"])
+        not_ok_row += link
+        not_ok_row += desc
+        not_ok_row += place
+        not_ok_row += motif
+        not_ok_row += person
+        not_ok_row += "|-\n"
+        not_ok_file.write(not_ok_row)
+        
+    
     print("New filename: {}".format(new_filename))
     print()
     print(infotext)
     print()
+    print("<nowiki>\n")
+    print(categories)
+    print("</nowiki>")
     
     return no_content_categories
 
 
-# In[ ]:
+# In[24]:
 
 mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
-print("Loaded DataFrame from 'mexiko_df_final.pickle' OK")
+#print("Loaded DataFrame from 'mexiko_df_final.pickle' OK")
 filenames_file = open("./mexiko_filenames_mappings.csv","w")
 filenames_file.write("Original|Commons\n")
 no_content_categories = 0
+
+not_ok_file = open("./no_ok_to_upload.info","a")
+not_ok_table = ""
+header_row = """{| class="wikitable sortable" style="width: 60%; height: 200px;"
+        ! Image
+        ! Description
+        ! Place
+        ! Keywords
+        ! Depicted person
+        ! Search terms
+        |-\n"""
+footer_row = "\n|}"   
+not_ok_file.write(header_row)
+
 for row_index, row in mexiko.iterrows():
-    no_content_category = create_infofiles(row, filenames_file)
+    no_content_category = create_infofiles(row, filenames_file, not_ok_file)
     no_content_categories += no_content_category
     #print("Stats: \nTotal images {}\nOK images {}\nUncategorized images {}\nImages missing author {}".format(total_images, OK_images - faulty_images, uncategorized_images, faulty_images ))
 #print("Total Stats: \nTotal images {}\nOK images {}\nUncategorized images {}\nImages missing author {}".format(total_images, OK_images - faulty_images, uncategorized_images, faulty_images ))
+not_ok_file.write(footer_row)
+not_ok_file.close()
 print("Uncategorized images: {}".format(no_content_categories))
-
-
-# In[29]:
-
-"-" == "-"
 
 
 # In[ ]:
