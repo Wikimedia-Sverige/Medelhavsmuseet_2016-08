@@ -1,11 +1,12 @@
 {{photograph
 |title              = 
-|description       = {{sv|Rekonstruktion av Ciudadelas västfasad. Ciudadela, ritning, Teotihuacan}}
+|description       = {{sv|Rekonstruktion av Ciudadelas västfasad. nan Ciudadela, ritning, Teotihuacan}}
+{{en|Images from the 1932 Sigvald Linné archeological expedition at Teotihuacán, Mexico.}}
 |depicted people    = 
 |medium             = 
 |dimensions         = 
 |institution        = {{Institution:Statens museer för världskultur}}
-|department         = [[q:Q1371375|Etnografiska muséet]]
+|department         = [[d:Q1371375|Etnografiska muséet]]
 |references         = 
 |object history     = 
 |exhibition history = 
@@ -13,13 +14,14 @@
 |inscriptions       = 
 |notes              = 
 |accession number   = {{SMVK-EM-link|1=foto|2=2789894|3=0307.a.0139.a}}
-|source             = Original file name, as recieved from SMVK:  <br /> '''0307.a.0139.a.tif'''
+|source             = Original file name, as receieved from SMVK:  <br /> '''0307.a.0139.a.tif'''
 {{SMVK_cooperation_project|COH|museum=EM}}
 |permission         = {{cc-zero}}
 |other_versions     =
 }}
 [[Category:Linné_expedition_at_Teotihuacan_Mexico_1932]]
 [[Category:Images_from_SMVK_2016-11]]
+
 [[Category:La_Ciudadela]]
 [[Category:Teotihuacán]]
 [[Category:Images_from_SMVK_without_photographer]]
