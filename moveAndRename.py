@@ -19,8 +19,8 @@ def load_data(in_file):
     @param in_data: the path to the metadata file
     @return: dict, list
     """
-    header = u'Folder|Original|Commons'
-    key_col = (u'Folder', u'Original')
+    header = u'Original|Commons'
+    key_col = (u'Original',)
     data = csv_methods.csv_file_to_dict(in_file, key_col, header)
     folders = []
     for val in data.values():
@@ -83,14 +83,14 @@ def copy_info_files(info_dir, data, out_dir):
             out_file = common.modify_path(out_dir, file_name)
             copyfile(in_file, out_file)
         else:
-            print u'{} is missing'.format(file_name)
+            print(u'{} is missing'.format(file_name))
 
 
 def main(*args):
     """Command line entry point"""
-    in_file = u'GAR/GAR_Syria_2016-06/filenames_mapping.csv'
-    info_dir = u'GAR/GAR_Syria_2016-06/photograph_template_texts'
-    base_dir = u'/media/andre/USB DISK/GAR_pictures_for_WMSE_AC'
+    in_file = u'./mexiko_filenames_mappings.csv'
+    info_dir = u'./infofiles/'
+    base_dir = u'./testimages/'
     out_dir = u'renamed'
 
     for arg in args:
@@ -110,7 +110,7 @@ def main(*args):
     move_matching_files(files, data, out_dir)
     prep.removeEmptyDirectories(base_dir)
     #copy_info_files(info_dir, data, out_dir)
-    print 'Done'
+    print('Done')
 
 if __name__ == "__main__":
     main()
