@@ -297,13 +297,13 @@ def create_infofiles(row, filenames_file, not_ok_file):
     
     en_description = "{{en|Images from the 1932 Sigvald Linné archeological expedition at Teotihuacán, Mexico.}}\n"
     if pd.notnull(row["Beskrivning"]):
-        sv_desc = "{{sv|" + row["Beskrivning"].strip(".") + ". "
+        sv_desc = "{{sv|" + row["Beskrivning"].strip(". ") + ". "
         if pd.notnull(row["Händelse / var närvarande vid"]):
-            sv_desc += row["Händelse / var närvarande vid"].strip(".") + ". "
+            sv_desc += row["Händelse / var närvarande vid"].strip(". ") + ". "
         if pd.notnull(row["Ort, foto"]):
-            sv_desc += row["Ort, foto"].strip(".") + ". "
+            sv_desc += row["Ort, foto"].strip(". ") + ". "
         if pd.notnull(row["Motivord"]):
-            sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(".") + ". "
+            sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
         
         infotext += "|description       = " + sv_desc +  "}}\n"
         infotext += en_description
@@ -314,7 +314,11 @@ def create_infofiles(row, filenames_file, not_ok_file):
         if pd.isnull(row["Ort, foto"]):
             OK_to_upload = False
         elif pd.notnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]) and pd.notnull(row["Händelse / var närvarande vid"]):
-            infotext += "|description       = {{sv|" + row["Ort, foto"] + " " + row["Händelse / var närvarande vid"] + " " + row["Motivord"] + "}}\n"
+            sv_desc = "{{sv|"
+            sv_desc += row["Ort, foto"].strip(". ") + ". "
+            sv_desc += row["Händelse / var närvarande vid"].strip(". ") + ". "
+            sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
+            infotext += "|description       = " + sv_desc +  "}}\n"
             infotext += en_description
         
     depicted_people = ""
@@ -327,7 +331,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
             for i, j in zip(lista[::2], lista[1::2]):
                 if j + " " + i == "Sigvald Linne":
                     linne_category = True
-                    depicted_people += "[[q:Q5959424|Sigvald Linné]]\n"
+                    depicted_people += "[[:d:Q5959424|Sigvald Linné]]\n"
                     content_categories_string += "[[Category:Sigvald_Linné]]\n"
                 else:
                     depicted_people += j + " " + i + "/"
@@ -356,7 +360,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
     
     infotext += "|institution        = {{Institution:Statens museer för världskultur}}\n"
     
-    infotext += "|department         = [[d:Q1371375|Etnografiska muséet]]\n"
+    infotext += "|department         = [[:d:Q1371375|Etnografiska muséet]]\n"
     
     infotext += "|references         = \n"
     infotext += "|object history     = \n"
