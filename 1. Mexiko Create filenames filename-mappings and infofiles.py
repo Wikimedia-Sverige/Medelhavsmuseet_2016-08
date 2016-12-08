@@ -315,15 +315,18 @@ def create_infofiles(row, filenames_file, not_ok_file):
         lacking_description = True
         if pd.isnull(row["Ort, foto"]):
             OK_to_upload = False
-        elif pd.notnull(row["Ort, foto"]) and pd.notnull(row["Motivord"]) and pd.notnull(row["Händelse / var närvarande vid"]):
-            sv_desc = "{{sv|"
-            sv_desc += row["Ort, foto"].strip(". ") + ". "
-            sv_desc += row["Händelse / var närvarande vid"].strip(". ") + ". "
-            sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
-            infotext += "|description       = " + sv_desc +  "}}\n"
-            infotext += en_description
-        else:
-            print("OH NO!: If you see this the code need to be amended")
+            
+    if pd.isnull(row["Beskrivning"]):
+        if pd.notnull(row["Ort, foto"]):
+            if pd.notnull(row["Motivord"]) and pd.notnull(row["Händelse / var närvarande vid"]):
+                sv_desc = "{{sv|"
+                sv_desc += row["Ort, foto"].strip(". ") + ". "
+                sv_desc += row["Händelse / var närvarande vid"].strip(". ") + ". "
+                sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
+                infotext += "|description       = " + sv_desc +  "}}\n"
+                infotext += en_description
+            else:
+                print("OH NO!: If you see this the code need to be amended")
         
     depicted_people = ""
     if pd.notnull(row["Personnamn / avbildad"]):
