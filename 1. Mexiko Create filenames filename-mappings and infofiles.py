@@ -9,6 +9,7 @@ get_ipython().system('pip install --process-dependency-links git+https://github.
 # In[1]:
 
 from batchupload import helpers
+from batchupload import common
 import pandas as pd
 from collections import Counter
 import os
@@ -434,13 +435,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
     
     categories.lstrip()
     
-    if OK_to_upload:
-        #print(OK_to_upload)
-        #print("new_filename: {} + .info".format(new_filename))
-        outfile = open(outpath + new_filename + ".info","w")
-        outfile.write(infotext + "\n" + categories)
-        outfile.close()
-    else:
+    if not OK_to_upload:
         not_ok_row = ""
         link = "| " + str(row["SMVK-EM-link"]) + "\n"
         desc = "| " + str(row["Beskrivning"]) + "\n"
@@ -456,7 +451,14 @@ def create_infofiles(row, filenames_file, not_ok_file):
         not_ok_row += searchw
         not_ok_row += "|-\n"
         not_ok_file.write(not_ok_row)
+        return None
         
+    info_data = {
+        "info": infotext + "\n" + categories,
+        "filename": new_filename,
+        "cats": None,
+        "meta_cats": None
+    }
     
     print("New filename: {}".format(new_filename))
     print()
@@ -466,7 +468,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
     print(categories)
     print("</nowiki>")
     
-    return no_content_categories
+    return {row["Fotonummer"]: info_data}
 
 
 # In[ ]:
@@ -490,16 +492,23 @@ header_row = """{| class="wikitable sortable" style="width: 60%; height: 200px;"
 footer_row = "\n|}"   
 not_ok_file.write(header_row)
 
+out_data = {}
 #for row_index, row in mexiko.sample(n=20).iterrows(): #### WHEN DEVELOPING using .sample(n=20)
 for row_index, row in mexiko.iterrows():
-    no_content_category = create_infofiles(row, filenames_file, not_ok_file)
-    no_content_categories += no_content_category
+    info_data = create_infofiles(row, filenames_file, not_ok_file)
+    if info_data:
+        out_data.update(info_data)
+    else:
+        no_content_categories += 1
     #print("Stats: \nTotal images {}\nOK images {}\nUncategorized images {}\nImages missing author {}".format(total_images, OK_images - faulty_images, uncategorized_images, faulty_images ))
 #print("Total Stats: \nTotal images {}\nOK images {}\nUncategorized images {}\nImages missing author {}".format(total_images, OK_images - faulty_images, uncategorized_images, faulty_images ))
 not_ok_file.write(footer_row)
 not_ok_file.close()
 print("Uncategorized images: {}".format(no_content_categories))
 
+# output out_data as json
+info_data_filename = "./mexiko_info_data.json"
+common.open_and_write_file(info_data_filename, out_data, as_json=True)
 
 # In[136]:
 
