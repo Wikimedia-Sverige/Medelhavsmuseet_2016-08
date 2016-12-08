@@ -26,7 +26,7 @@ mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
 #pd.set_option('max_seq_items', 10)
 
 # Ensure this computer has got NLTK tokenizers
-nltk.download()
+#nltk.download()
 # The metadata file on [Google Docs](https://docs.google.com/spreadsheets/d/1YXusiepersJ6_XGoUVEE0jfGh5NJs-5Rds2_l5ZbGik/edit?usp=sharing)
 # 
 # The collection object "Linné-Mexiko" from Etnografiska Museet is [on Carlotta](http://collections.smvk.se/carlotta-em/web/object/1460547)
