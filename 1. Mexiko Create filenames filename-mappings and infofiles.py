@@ -324,12 +324,9 @@ def create_infofiles(row, filenames_file, not_ok_file):
                 sv_desc += row["Händelse / var närvarande vid"].strip(". ") + ". "
                 if pd.notnull(row["Motivord"]):
                     sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
-                                
+                                    
     infotext += "|description       = " + sv_desc +  "}}\n"
     infotext += en_description
-
-            else:
-                print("OH NO!: If you see this the code need to be amended")
         
     depicted_people = ""
     if pd.notnull(row["Personnamn / avbildad"]):
