@@ -316,17 +316,18 @@ def create_infofiles(row, filenames_file, not_ok_file):
         if pd.isnull(row["Ort, foto"]):
             OK_to_upload = False
             
-    if pd.isnull(row["Beskrivning"]):
-        if pd.notnull(row["Ort, foto"]):
-            sv_desc = "{{sv|"
-            sv_desc += row["Ort, foto"].strip(". ") + ". "
-            if pd.notnull(row["Händelse / var närvarande vid"]):
+    if OK_to_upload == True:
+        sv_desc = "{{sv|"
+        if pd.isnull(row["Beskrivning"]):
+            if pd.notnull(row["Ort, foto"]):
+                sv_desc += row["Ort, foto"].strip(". ") + ". "
+            elif pd.notnull(row["Händelse / var närvarande vid"]):
                 sv_desc += row["Händelse / var närvarande vid"].strip(". ") + ". "
-                if pd.notnull(row["Motivord"]):
-                    sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
-                                    
-    infotext += "|description       = " + sv_desc +  "}}\n"
-    infotext += en_description
+            elif pd.notnull(row["Motivord"]):
+                sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
+
+        infotext += "|description       = " + sv_desc +  "}}\n"
+        infotext += en_description
         
     depicted_people = ""
     if pd.notnull(row["Personnamn / avbildad"]):
