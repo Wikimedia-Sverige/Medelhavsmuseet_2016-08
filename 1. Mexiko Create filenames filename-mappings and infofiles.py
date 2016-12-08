@@ -235,7 +235,8 @@ def create_new_filename(row, filenames_file):
         return description
     
     def append_new_filename_to_filenames_mapping_file(filenames_file, old_filename, new_filename):
-        filenames_file.write("{}|{}\n".format(old_filename, new_filename + ".info"))
+        file_ext = os.path.splitext(old_filename)[1]
+        filenames_file.write("{}|{}\n".format(old_filename, new_filename + file_ext))
         return 
     
     id_str = create_id_str(fname_parts)
