@@ -320,6 +320,8 @@ def create_infofiles(row, filenames_file, not_ok_file):
             sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
             infotext += "|description       = " + sv_desc +  "}}\n"
             infotext += en_description
+        else:
+            print("OH NO!: If you see this the code need to be amended")
         
     depicted_people = ""
     if pd.notnull(row["Personnamn / avbildad"]):
@@ -462,13 +464,13 @@ def create_infofiles(row, filenames_file, not_ok_file):
         not_ok_file.write(not_ok_row)
         
     
-    print("New filename: {}".format(new_filename))
-    print()
-    print(infotext)
-    print()
-    print("<nowiki>\n")
-    print(categories)
-    print("</nowiki>")
+    # print("New filename: {}".format(new_filename))
+    # print()
+    # print(infotext)
+    # print()
+    # print("<nowiki>\n")
+    # print(categories)
+    # print("</nowiki>")
     
     return no_content_categories
 
