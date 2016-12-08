@@ -3,7 +3,7 @@
 
 # In[2]:
 
-get_ipython().system('pip install --process-dependency-links git+https://github.com/lokal-profil/BatchUploadTools.git@py3compat')
+#get_ipython().system('pip install --process-dependency-links git+https://github.com/lokal-profil/BatchUploadTools.git@py3compat')
 
 
 # In[1]:
@@ -22,8 +22,8 @@ mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
 
 # In[41]:
 
-pd.set_option('display.max_rows', 5)
-pd.set_option('max_seq_items', 10)
+#pd.set_option('display.max_rows', 5)
+#pd.set_option('max_seq_items', 10)
 
 # Ensure this computer has got NLTK tokenizers
 nltk.download()
