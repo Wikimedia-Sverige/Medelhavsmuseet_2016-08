@@ -298,36 +298,26 @@ def create_infofiles(row, filenames_file, not_ok_file):
     infotext += "|title              = \n"
     
     en_description = "{{en|Images from the 1932 Sigvald Linné archeological expedition at Teotihuacán, Mexico.}}\n"
-    if pd.notnull(row["Beskrivning"]):
-        sv_desc = "{{sv|" + row["Beskrivning"].strip(". ") + ". "
-        if pd.notnull(row["Händelse / var närvarande vid"]):
-            sv_desc += row["Händelse / var närvarande vid"].strip(". ") + ". "
-        if pd.notnull(row["Ort, foto"]):
-            sv_desc += row["Ort, foto"].strip(". ") + ". "
-        if pd.notnull(row["Motivord"]):
-            sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
-        
-        infotext += "|description       = " + sv_desc +  "}}\n"
-        infotext += en_description
-        
     
+    # Maintanance category and/or skip
     if pd.isnull(row["Beskrivning"]):
         lacking_description = True
         if pd.isnull(row["Ort, foto"]):
             OK_to_upload = False
-            
-    if OK_to_upload == True:
-        sv_desc = "{{sv|"
-        if pd.isnull(row["Beskrivning"]):
-            if pd.notnull(row["Ort, foto"]):
-                sv_desc += row["Ort, foto"].strip(". ") + ". "
-            elif pd.notnull(row["Händelse / var närvarande vid"]):
-                sv_desc += row["Händelse / var närvarande vid"].strip(". ") + ". "
-            elif pd.notnull(row["Motivord"]):
-                sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
 
-        infotext += "|description       = " + sv_desc +  "}}\n"
-        infotext += en_description
+    # Attempt to construct a description
+    sv_desc = ""
+    if pd.notnull(row["Beskrivning"]):
+        sv_desc += row["Beskrivning"].strip(". ") + ". "
+    if pd.notnull(row["Ort, foto"]):
+        sv_desc += row["Ort, foto"].strip(". ") + ". "
+    if pd.notnull(row["Händelse / var närvarande vid"]):
+        sv_desc += row["Händelse / var närvarande vid"].strip(". ") + ". "
+    if pd.notnull(row["Motivord"]):
+        sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
+
+    infotext += "|description       = {{sv|" + sv_desc.strip() +  "}}\n"
+    infotext += en_description
         
     depicted_people = ""
     if pd.notnull(row["Personnamn / avbildad"]):
