@@ -275,7 +275,6 @@ def create_infofiles(row, filenames_file, not_ok_file):
     
     en_description = "{{en|Images from the 1932 Sigvald Linné archeological expedition at Teotihuacán, Mexico.}}\n"
     
-    # Maintanance category and/or skip
 
     # Attempt to construct a description
     sv_desc = ""
@@ -289,6 +288,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
     if pd.notnull(row["Motivord"]):
         sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
 
+    # Maintanance category and/or skip
     if pd.isnull(row["Beskrivning"]):
         lacking_description = True
         if pd.isnull(row["Ort, foto"]):
