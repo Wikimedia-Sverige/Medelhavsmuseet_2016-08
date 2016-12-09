@@ -19,31 +19,8 @@ import pickle
 
 mexiko = pickle.load(open("./mexiko_df_final.pickle","rb"))
 
-
-# In[41]:
-
-#pd.set_option('display.max_rows', 5)
-#pd.set_option('max_seq_items', 10)
-
-# Ensure this computer has got NLTK tokenizers
-#nltk.download()
-# The metadata file on [Google Docs](https://docs.google.com/spreadsheets/d/1YXusiepersJ6_XGoUVEE0jfGh5NJs-5Rds2_l5ZbGik/edit?usp=sharing)
-# 
-# The collection object "Linné-Mexiko" from Etnografiska Museet is [on Carlotta](http://collections.smvk.se/carlotta-em/web/object/1460547)
-# 
-# A list of all the photographs is listed [on Carlotta](http://collections.smvk.se/carlotta-em/web/object/1460547/CHILDREN/9)
-# 
-# Here is the full search in the Database from Etnografiska Museet [in K-SAMSOK](http://www.varldskulturmuseerna.se/etnografiskamuseet/forskning-samlingar/sok-i-samlingarna1/?ksamsearchtext=mexiko+sigvald+tula&radio-group=andmatch&itemtype=samling&ksamsubmit=S%C3%B6k)
-
-# # 0. Read in the metadata
-
-# In[3]:
-
 mexiko_test = pd.read_excel("excel-export.xls", sheetname="Mexiko")
 mexiko_test.columns
-
-
-# In[11]:
 
 def strip(text):
     try:
@@ -63,7 +40,6 @@ mexiko = pd.read_excel("excel-export.xls", sheetname="Mexiko", converters=mexiko
 # 
 # * Add these to the final images in the infobox
 
-# In[12]:
 
 sub_desc = {"a":"Teotihuacan (241) utgrävningar, fornlämningar, invånare",
 "b": "Mexiko (29) utgrävningar, fornlämningar mm",
@@ -299,14 +275,10 @@ def create_infofiles(row, filenames_file, not_ok_file):
     
     en_description = "{{en|Images from the 1932 Sigvald Linné archeological expedition at Teotihuacán, Mexico.}}\n"
     
-    # Maintanance category and/or skip
-    if pd.isnull(row["Beskrivning"]):
-        lacking_description = True
-        if pd.isnull(row["Ort, foto"]):
-            OK_to_upload = False
 
     # Attempt to construct a description
     sv_desc = ""
+
     if pd.notnull(row["Beskrivning"]):
         sv_desc += row["Beskrivning"].strip(". ") + ". "
     if pd.notnull(row["Ort, foto"]):
@@ -315,6 +287,12 @@ def create_infofiles(row, filenames_file, not_ok_file):
         sv_desc += row["Händelse / var närvarande vid"].strip(". ") + ". "
     if pd.notnull(row["Motivord"]):
         sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
+
+    # Maintanance category and/or skip
+    if pd.isnull(row["Beskrivning"]):
+        lacking_description = True
+        if pd.isnull(row["Ort, foto"]):
+            OK_to_upload = False
 
     infotext += "|description       = {{sv|" + sv_desc.strip() +  "}}\n"
     infotext += en_description
