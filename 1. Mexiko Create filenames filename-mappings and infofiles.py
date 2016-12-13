@@ -137,8 +137,8 @@ for index, row in mexiko.iterrows():
     template = "{{SMVK-EM-link|1=foto|2=" + id_str + "|3=" + row["Fotonummer"] + "}}"
     mexiko.loc[index, "SMVK-EM-link"] = template
 
-mexiko.to_pickle("./mexiko_df_final.pickle")
-mexiko
+#mexiko.to_pickle("./mexiko_df_final.pickle")
+#mexiko
 
 
 # Tips: Om det bara finns generiskt motivord och det finns Ort, foto OCH Motivord:
