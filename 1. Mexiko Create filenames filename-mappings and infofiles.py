@@ -316,7 +316,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
     if pd.notnull(row["Motivord"]):
         sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
 
-    infotext += "|description       = {{sv|" + sv_desc.strip() +  "}}\n"
+    infotext += "|description        = {{sv|" + sv_desc.strip() +  "}}\n"
     infotext += en_description
         
     depicted_people = ""
@@ -348,7 +348,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
                 wikidata_present = True
                 wikidata_string += r["wikidata"][2:]
         if wikidata_present:
-            infotext += "|depicted place    = " + wikidata_string + "\n"
+            infotext += "|depicted place     = " + wikidata_string + "\n"
         else:
             infotext += "|depicted place     = " + str(row["Ort, foto"]) + "\n"
     
