@@ -326,13 +326,15 @@ def create_infofiles(row, filenames_file, not_ok_file):
             personnamn_not_even = True
             infotext += "|depicted people     = " + row["Personnamn / avbildad"] + "\n"
         else:
+            if "Linné, Sigvald" in row["Personnamn / avbildad"]:
+                linne_category = True
+                depicted_people += "[[:d:Q5959424|Sigvald Linné]]\n"
             for i, j in zip(lista[::2], lista[1::2]):
-                if j + " " + i == "Sigvald Linne":
-                    linne_category = True
-                    depicted_people += "[[:d:Q5959424|Sigvald Linné]]\n"
-                    content_categories_string += "[[Category:Sigvald_Linné]]\n"
+                if j + " " + i == "Sigvald Linné":
+                    depicted_people += "[[Category:Sigvald_Linné]]"
                 else:
                     depicted_people += j + " " + i + "/"
+            
             depicted_people = depicted_people.rstrip("/") 
             infotext += "|depicted people    = " + depicted_people + "\n"
     
@@ -414,6 +416,8 @@ def create_infofiles(row, filenames_file, not_ok_file):
                     content_categories_set.add("[[" + kw["category"] + "]]") 
     #print("content_categories_set: \n{}".format(content_categories_set))
     
+    if linne_category:
+        categories += "\n[[Category:Sigvald_Linné]]"
     
     if content_categories:
         for content_category in content_categories_set:
@@ -431,8 +435,6 @@ def create_infofiles(row, filenames_file, not_ok_file):
         categories += "\n[[Category:Images_from_SMVK_without_full_description]]"
     if lacking_photographer:
         categories += "\n[[Category:Images_from_SMVK_without_photographer]]"
-    if linne_category:
-        categories += "\n[[Category:Sigvald_Linné]]"
     
     categories.lstrip()
     
