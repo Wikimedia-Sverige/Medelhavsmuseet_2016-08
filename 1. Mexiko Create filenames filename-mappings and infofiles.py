@@ -371,7 +371,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
     infotext += "|accession number   = " + str(row["SMVK-EM-link"]) + "\n"
     
     if pd.notnull(row["Fotonummer"]):
-        infotext += "|source             = Original file name, as received from SMVK:  <br /> '''" + str(row["Fotonummer"]) +        ".tif'''\n{{SMVK_cooperation_project|COH|museum=EM}}\n"
+        infotext += "|source             = Original file name, as received from SMVK: <br /> '''" + str(row["Fotonummer"]) +        ".tif'''\n{{SMVK_cooperation_project|COH|museum=EM}}\n"
         
     infotext += "|permission         = {{cc-zero}}\n"
     infotext += "|other_versions     =\n"
