@@ -333,7 +333,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
                 if j + " " + i == "Sigvald Linné":
                     depicted_people += "[[Category:Sigvald_Linné]]"
                 else:
-                    depicted_people += j + " " + i + "/"
+                    depicted_people += j + " " + i
             
             depicted_people = depicted_people.rstrip("/") 
             infotext += "|depicted people    = " + depicted_people + "\n"
