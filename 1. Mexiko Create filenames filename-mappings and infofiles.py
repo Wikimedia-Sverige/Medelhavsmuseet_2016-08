@@ -426,15 +426,15 @@ def create_infofiles(row, filenames_file, not_ok_file):
         
     else:
         no_content_categories += 1
-        categories += "\n[[Category:Images_from_SMVK_without_content_categories]]"
+        categories += "\n[[Category:Media_contributed_by_SMVK_without_content_categories]]"
         OK_to_upload = False
     if personnamn_not_even:
-        categories += "\n[[Category:Images_from_SMVK_with_faulty_depicted_persons]]"
+        categories += "\n[[Category:Media_contributed_by_SMVK_with_faulty_depicted_persons]]"
         
     if lacking_description:
-        categories += "\n[[Category:Images_from_SMVK_without_full_description]]"
+        categories += "\n[[Category:Media_contributed_by_SMVK_without_full_description]]"
     if lacking_photographer:
-        categories += "\n[[Category:Images_from_SMVK_without_photographer]]"
+        categories += "\n[[Category:Media_contributed_by_SMVK_without_photographer]]"
     
     categories.lstrip()
     
