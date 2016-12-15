@@ -325,7 +325,6 @@ def create_infofiles(row, filenames_file, not_ok_file):
             infotext += "|depicted people     = " + row["Personnamn / avbildad"] + "\n"
         else:
             if "Linné, Sigvald" in row["Personnamn / avbildad"]:
-                linne_category = True
                 depicted_people += "[[:d:Q5959424|Sigvald Linné]]\n"
             for i, j in zip(lista[::2], lista[1::2]):
                 if j + " " + i == ("Sigvald Linné", "Sigvald Linne"):
