@@ -291,8 +291,6 @@ def create_infofiles(row, filenames_file, not_ok_file):
             infotext += "|photographer       = " + row["Personnamn / fotograf"].strip() + "\n"
     
     if pd.isnull(row["Personnamn / fotograf"]):
-        if row["Personnamn / fotograf"] == "Linné, Sigvald": # not all cases
-            infotext += "|photographer       = "+ "{{creator:Sigvald_Linné}}\n" 
         lacking_photographer = True
     
     infotext += "|title              = \n"
