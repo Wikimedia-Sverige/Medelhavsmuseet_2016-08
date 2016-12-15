@@ -283,7 +283,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
     
     if pd.notnull(row["Personnamn / fotograf"]):
         if "Apenes" in row["Personnamn / fotograf"]:
-            infotext +="|photographer       = " + "{{creator:Sigvald_Linné}} / Ola Apenes\n"
+            infotext +="|photographer       = " + "{{creator:Sigvald_Linné}}{{creator:Ola_Apenes}}\n"
         elif "Sigvald" in row["Personnamn / fotograf"]:
             linne_category == True
             infotext +="|photographer       = " + "{{creator:Sigvald_Linné}}\n"
