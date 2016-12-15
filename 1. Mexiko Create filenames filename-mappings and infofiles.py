@@ -415,7 +415,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
     #print("content_categories_set: \n{}".format(content_categories_set))
     
     if linne_category:
-        categories += "\n[[Category:Sigvald_Linné]]"
+        categories += "\n[[Category:Images_by_Sigvald_Linné]]"
     
     if content_categories:
         for content_category in content_categories_set:
