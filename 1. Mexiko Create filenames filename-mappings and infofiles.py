@@ -137,8 +137,8 @@ for index, row in mexiko.iterrows():
     template = "{{SMVK-EM-link|1=foto|2=" + id_str + "|3=" + row["Fotonummer"] + "}}"
     mexiko.loc[index, "SMVK-EM-link"] = template
 
-mexiko.to_pickle("./mexiko_df_final.pickle")
-mexiko
+#mexiko.to_pickle("./mexiko_df_final.pickle")
+#mexiko
 
 
 # Tips: Om det bara finns generiskt motivord och det finns Ort, foto OCH Motivord:
@@ -283,16 +283,15 @@ def create_infofiles(row, filenames_file, not_ok_file):
     
     if pd.notnull(row["Personnamn / fotograf"]):
         if "Apenes" in row["Personnamn / fotograf"]:
-            infotext +="|photographer       =  " + "{{creator:Sigvald_Linné}} / Ola Apenes\n"
+            linne_category = True
+            infotext +="|photographer       = " + "{{creator:Sigvald_Linné}}{{creator:Ola_Apenes}}\n"
         elif "Sigvald" in row["Personnamn / fotograf"]:
             linne_category == True
-            infotext +="|photographer       =  " + "{{creator:Sigvald_Linné}}\n"
+            infotext +="|photographer       = " + "{{creator:Sigvald_Linné}}\n"
         else:
-            infotext += "|photographer       =  " + row["Personnamn / fotograf"].strip() + "\n"
+            infotext += "|photographer       = " + row["Personnamn / fotograf"].strip() + "\n"
     
     if pd.isnull(row["Personnamn / fotograf"]):
-        if row["Personnamn / fotograf"] == "Linné, Sigvald": # not all cases
-            infotext += "|photographer       =  "+ "{{creator:Sigvald_Linné}}\n" 
         lacking_photographer = True
     
     infotext += "|title              = \n"
@@ -316,7 +315,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
     if pd.notnull(row["Motivord"]):
         sv_desc += "<br /> ''Nyckelord:'' " + row["Motivord"].strip(". ") + ". "
 
-    infotext += "|description       = {{sv|" + sv_desc.strip() +  "}}\n"
+    infotext += "|description        = {{sv|" + sv_desc.strip() +  "}}\n"
     infotext += en_description
         
     depicted_people = ""
@@ -327,12 +326,12 @@ def create_infofiles(row, filenames_file, not_ok_file):
             infotext += "|depicted people     = " + row["Personnamn / avbildad"] + "\n"
         else:
             for i, j in zip(lista[::2], lista[1::2]):
-                if j + " " + i == "Sigvald Linne":
-                    linne_category = True
-                    depicted_people += "[[:d:Q5959424|Sigvald Linné]]\n"
+                if j + " " + i in ("Sigvald Linné", "Sigvald Linne"):
+                    depicted_people += "[[:d:Q5959424|Sigvald Linné]]/"
                     content_categories_string += "[[Category:Sigvald_Linné]]\n"
                 else:
                     depicted_people += j + " " + i + "/"
+            
             depicted_people = depicted_people.rstrip("/") 
             infotext += "|depicted people    = " + depicted_people + "\n"
     
@@ -346,7 +345,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
                 wikidata_present = True
                 wikidata_string += r["wikidata"][2:]
         if wikidata_present:
-            infotext += "|depicted place    = " + wikidata_string + "\n"
+            infotext += "|depicted place     = " + wikidata_string + "\n"
         else:
             infotext += "|depicted place     = " + str(row["Ort, foto"]) + "\n"
     
@@ -369,7 +368,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
     infotext += "|accession number   = " + str(row["SMVK-EM-link"]) + "\n"
     
     if pd.notnull(row["Fotonummer"]):
-        infotext += "|source             = Original file name, as received from SMVK:  <br /> '''" + str(row["Fotonummer"]) +        ".tif'''\n{{SMVK_cooperation_project|COH|museum=EM}}\n"
+        infotext += "|source             = Original file name, as received from SMVK: <br /> '''" + str(row["Fotonummer"]) +        ".tif'''\n{{SMVK_cooperation_project|COH|museum=EM}}\n"
         
     infotext += "|permission         = {{cc-zero}}\n"
     infotext += "|other_versions     =\n"
@@ -414,6 +413,8 @@ def create_infofiles(row, filenames_file, not_ok_file):
                     content_categories_set.add("[[" + kw["category"] + "]]") 
     #print("content_categories_set: \n{}".format(content_categories_set))
     
+    if linne_category:
+        categories += "\n[[Category:Images_by_Sigvald_Linné]]"
     
     if content_categories:
         for content_category in content_categories_set:
@@ -422,17 +423,15 @@ def create_infofiles(row, filenames_file, not_ok_file):
         
     else:
         no_content_categories += 1
-        categories += "\n[[Category:Images_from_SMVK_without_content_categories]]"
+        categories += "\n[[Category:Media_contributed_by_SMVK_without_content_categories]]"
         OK_to_upload = False
     if personnamn_not_even:
-        categories += "\n[[Category:Images_from_SMVK_with_faulty_depicted_persons]]"
+        categories += "\n[[Category:Media_contributed_by_SMVK_with_faulty_depicted_persons]]"
         
     if lacking_description:
-        categories += "\n[[Category:Images_from_SMVK_without_full_description]]"
+        categories += "\n[[Category:Media_contributed_by_SMVK_without_full_description]]"
     if lacking_photographer:
-        categories += "\n[[Category:Images_from_SMVK_without_photographer]]"
-    if linne_category:
-        categories += "\n[[Category:Sigvald_Linné]]"
+        categories += "\n[[Category:Media_contributed_by_SMVK_without_photographer]]"
     
     categories.lstrip()
     
