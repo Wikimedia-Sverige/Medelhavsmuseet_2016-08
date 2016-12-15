@@ -329,7 +329,7 @@ def create_infofiles(row, filenames_file, not_ok_file):
                 depicted_people += "[[:d:Q5959424|Sigvald Linné]]\n"
             for i, j in zip(lista[::2], lista[1::2]):
                 if j + " " + i == ("Sigvald Linné", "Sigvald Linne"):
-                    depicted_people += "[[Category:Sigvald_Linné]]"
+                    depicted_people += "[[Category:Sigvald_Linné]]/"
                 else:
                     depicted_people += j + " " + i
             
