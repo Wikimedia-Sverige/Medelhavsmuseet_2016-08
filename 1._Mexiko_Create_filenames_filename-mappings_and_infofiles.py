@@ -276,7 +276,6 @@ def create_new_filename(row, filenames_file):
 
 def create_infofiles(row, filenames_file, not_ok_file):
     bad_keywords = ["pyramid", "tempel", "Ciudadela", "tempelpyramid", "tempelpyramider", "ruiner", "fornlämningar"]
-    outpath = "./infofiles/"
     infotext = "{{photograph\n"
 
     new_filename = create_new_filename(row, filenames_file)
