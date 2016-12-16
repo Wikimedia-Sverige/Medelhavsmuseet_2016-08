@@ -1,1 +1,1 @@
-python /home/mos/anaconda3/lib/python3.5/site-packages/batchupload/uploader.py -in_path:/media/mos/My Passport/Wikimedia/renamed/ -confirm
+python /home/mos/anaconda3/lib/python3.5/site-packages/batchupload/prepUpload.py -in_path:/media/mos/My\ Passport/Wikimedia/Mexiko/ -out_path:/media/mos/My\ Passport/Wikimedia/Mexiko/renamed -data_path:./mexiko_info_data.json
