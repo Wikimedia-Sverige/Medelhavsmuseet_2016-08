@@ -1,0 +1,1 @@
+python /home/mos/anaconda3/lib/python3.5/site-packages/batchupload/uploader.py -in_path:/media/mos/My\ Passport/Wikimedia/Mexiko/renamed/ -confirm
