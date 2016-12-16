@@ -1,7 +1,7 @@
 {{photograph
-|photographer       = {{creator:Sigvald_Linné}}{{creator:Ola_Apenes}}
+|photographer       = {{creator:Sigvald_Linné}}
 |title              = 
-|description        = {{sv|"El Castillo", den centrala pyramiden. T. v. krigarens tempel. Chichén Itzá. Utgrävningar i Teotihuacan (1932). <br /> ''Nyckelord:'' pyramid.}}
+|description        = {{sv|Chichén Itzá. Utgrävningar i Teotihuacan (1932). <br /> ''Nyckelord:'' skulptur.}}
 {{en|Images from the 1932 Sigvald Linné archeological expedition at Teotihuacán, Mexico.}}
 |depicted place     = Q5859
 |date               = 1932
@@ -15,13 +15,16 @@
 |credit line        = 
 |inscriptions       = 
 |notes              = 
-|accession number   = {{SMVK-EM-link|1=foto|2=2795661|3=0307.f.0004.b}}
-|source             = Original file name, as received from SMVK: <br /> '''0307.f.0004.b.tif'''
+|accession number   = {{SMVK-EM-link|1=foto|2=2796819|3=0307.f.0079}}
+|source             = Original file name, as received from SMVK: <br /> '''0307.f.0079.tif'''
 {{SMVK_cooperation_project|COH|museum=EM}}
 |permission         = {{cc-zero}}
 |other_versions     =
 }}
 [[Category:Linné_expedition_at_Teotihuacan_Mexico_1932]]
 [[Category:Media_contributed_by_SMVK_2016-12]]
+
 [[Category:Images_by_Sigvald_Linné]]
-[[Category:Castillo_in_Chichén_Itzá]]
+[[Category:Sculptures_in_Mexico]]
+[[Category:Chichén_Itzá]]
+[[Category:Media_contributed_by_SMVK_without_full_description]]

@@ -1,9 +1,9 @@
 {{photograph
-|photographer       = {{creator:Sigvald_Linné}}{{creator:Ola_Apenes}}
+|photographer       = {{creator:Sigvald_Linné}}
 |title              = 
-|description        = {{sv|"El Castillo", den centrala pyramiden. T. v. krigarens tempel. Chichén Itzá. Utgrävningar i Teotihuacan (1932). <br /> ''Nyckelord:'' pyramid.}}
+|description        = {{sv|Solpyramiden. Teotihuacan. Utgrävningar i Teotihuacan (1932). <br /> ''Nyckelord:'' pyramid, tempel.}}
 {{en|Images from the 1932 Sigvald Linné archeological expedition at Teotihuacán, Mexico.}}
-|depicted place     = Q5859
+|depicted place     = Q172613
 |date               = 1932
 |medium             = 
 |dimensions         = 
@@ -15,8 +15,8 @@
 |credit line        = 
 |inscriptions       = 
 |notes              = 
-|accession number   = {{SMVK-EM-link|1=foto|2=2795661|3=0307.f.0004.b}}
-|source             = Original file name, as received from SMVK: <br /> '''0307.f.0004.b.tif'''
+|accession number   = {{SMVK-EM-link|1=foto|2=2786732|3=0307.a.0002.b}}
+|source             = Original file name, as received from SMVK: <br /> '''0307.a.0002.b.tif'''
 {{SMVK_cooperation_project|COH|museum=EM}}
 |permission         = {{cc-zero}}
 |other_versions     =
@@ -24,4 +24,4 @@
 [[Category:Linné_expedition_at_Teotihuacan_Mexico_1932]]
 [[Category:Media_contributed_by_SMVK_2016-12]]
 [[Category:Images_by_Sigvald_Linné]]
-[[Category:Castillo_in_Chichén_Itzá]]
+[[Category:Pirámide_del_Sol]]
