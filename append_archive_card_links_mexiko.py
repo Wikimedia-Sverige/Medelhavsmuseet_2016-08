@@ -1,6 +1,7 @@
 import pandas as pd
 import regex
 from pandas import ExcelWriter
+import json
 
 old_json = json.load(open("./mexiko_info_data.json"))
 
@@ -40,7 +41,7 @@ has_archive_cards.extend(mexiko_arkiv["Fotonummer.3"].dropna().tolist())
 has_archive_cards.extend(mexiko_arkiv["Fotonummer.4"].dropna().tolist())
 has_archive_cards = [id_str.strip() for id_str in has_archive_cards] # Note: every id has a leading whitespace in metadat doc!
 
-print(has_archive_cards)
+# print(has_archive_cards)
 
 def create_archive_card_smvk_em_link(fotonr, mexiko_arkiv):
     arkiv_id_row = mexiko_arkiv[mexiko_arkiv["Fotonummer"] == row["Fotonummer"]]
@@ -50,26 +51,33 @@ def create_archive_card_smvk_em_link(fotonr, mexiko_arkiv):
     ac_template = "{{SMVK-EM-link|1=?|2=" + id_str + "|3=" + arkiv_id
     return ac_template
 
-for index, row in mexiko.iterrows():
-    url = row["Länk"]
-    fotonr = row["Fotonummer"]
-    # first, slash, id_str = url.rpartition("/")
-    # new_url = "[" + url + " Fotonummer: " + id_str + "]"
-    # mexiko.loc[index, "wiki_url"] = new_url
+ac_cols = ["Fotonummer","Fotonummer.1","Fotonummer.2","Fotonummer.3","Fotonummer.4","Fotonummer.5"]
 
-    left_side, slash, id_str = url.rpartition("/")
-    template = "{{SMVK-EM-link|1=foto|2=" + id_str + "|3=" + row["Fotonummer"] + "}}"
-    mexiko.loc[index, "SMVK-EM-link"] = template
-
-    ac_cols = ["Fotonummer","Fotonummer.1","Fotonummer.2","Fotonummer.3","Fotonummer.4","Fotonummer.5"]
+for fotonr in old_json.keys():
 
     if fotonr in has_archive_cards:
+        #print("{} has archive card".format(fotonr))
+        
+        for col in ac_cols:
+            #print(mexiko_arkiv[col])
+            if fotonr in mexiko_arkiv[col].str.strip().dropna().tolist():
+                #print("{} in in mexiko_arkiv col {}".format(fotonr, col))
+                arkiv_url = mexiko_arkiv[mexiko_arkiv[col] == " " + fotonr]["Länk"]
+                #print(arkiv_url)
+                left_side, slash, id_str = arkiv_url.rpartition("/")
+                print(id_str)
+                template = "{{SMVK-EM-link|1=arkiv|2=" + id_str + "|3=" + fotonr + "}}"
+        #mexiko.loc[index, "SMVK-EM-link"] = template
+
+    
+
+    #if fotonr in has_archive_cards:
         # print("fotonr is in has archive cards")
 
-        ac_link = create_archive_card_smvk_em_link(fotonr, mexiko_arkiv)
-        print("ac_link: {}".format(ac_link))
+        #ac_link = create_archive_card_smvk_em_link(fotonr, mexiko_arkiv)
+        #print("ac_link: {}".format(ac_link))
         
-        mexiko_arkiv.loc[index, "archive_card"] = ac_template
+        #mexiko_arkiv.loc[index, "archive_card"] = ac_template
 
         
 
