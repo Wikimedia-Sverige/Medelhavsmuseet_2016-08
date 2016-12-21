@@ -2,6 +2,8 @@ import pandas as pd
 import regex
 from pandas import ExcelWriter
 
+old_json = json.load(open("./mexiko_info_data.json"))
+
 def strip(text):
     try:
         return text.strip()
@@ -28,8 +30,6 @@ mexiko_arkiv_converters = {
     "Arkiv"
 
 }
-
-mexiko = pd.read_excel("excel-export.xls", sheetname="Mexiko", converters=mexiko_converters)
 
 mexiko_arkiv = pd.read_excel("excel-export.xls", sheetname="Mexiko-Arkiv") # All column names are strip:ed
 
