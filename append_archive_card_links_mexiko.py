@@ -61,12 +61,14 @@ for fotonr in old_json.keys():
         for col in ac_cols:
             #print(mexiko_arkiv[col])
             if fotonr in mexiko_arkiv[col].str.strip().dropna().tolist():
+                ugly_fotonr = " " + fotonr
+                result = mexiko_arkiv[mexiko_arkiv[col] == ugly_fotonr]["Länk"]
+                link_string = result.values[0]
                 #print("{} in in mexiko_arkiv col {}".format(fotonr, col))
-                arkiv_url = mexiko_arkiv[mexiko_arkiv[col] == " " + fotonr]["Länk"]
-                #print(arkiv_url)
-                left_side, slash, id_str = arkiv_url.rpartition("/")
-                print(id_str)
+                left, dummy, id_str = link_string.rpartition("/")
+                #print("id_str: {} ".format(id_str))
                 template = "{{SMVK-EM-link|1=arkiv|2=" + id_str + "|3=" + fotonr + "}}"
+                print("fotonr: {} {}".format(fotonr,template))
         #mexiko.loc[index, "SMVK-EM-link"] = template
 
     
