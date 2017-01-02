@@ -101,7 +101,7 @@ for fotonr in old_json.keys():
                         altered_infotext = page.replace(current_source, new_source)
                         print("old_infotext:\n{}\n\n-------- {} ---------\naltered_page:\n{}\n\n".format(current_infotext, fname_map[fotonr_plus_ext], altered_infotext))
                     except AttributeError as e:
-                        print("Error on commons file {} source field retrieval:\n{}".format(current_file, e))
+                        print("Error on commons file {} source field retrieval:\n{}".format(page, e))
                     #print("current_source:\n{}".format(current_source))
                 else:
                     print("{} not in fname_map, thus wasn't good enough to be uploaded".format(fotonr))
