@@ -93,9 +93,12 @@ for fotonr in old_json.keys():
                 fotonr_plus_ext = fotonr + ".tif"
                 if fotonr_plus_ext in fname_map:
                     time.sleep(3)
-                    current_page = pywikibot.Page(site, u"File:" + fname_map[fotonr_plus_ext])
-                    current_infotext = current_page.latest_revision.text # ensure latest revision
-                    current_match = source_patt.search(current_infotext)
+                    try:
+                        current_page = pywikibot.Page(site, u"File:" + fname_map[fotonr_plus_ext])
+                        current_infotext = current_page.latest_revision.text # ensure latest revision
+                        current_match = source_patt.search(current_infotext)
+                    except Exception as e:
+                        print("It seems that <fotonummer> {} is not uploaded?\nError message: {}\n".format(fotonr, e)
                     try:
                         current_source = current_match.group(1)
                         altered_infotext = current_infotext.replace(current_source, new_source)
