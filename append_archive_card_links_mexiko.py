@@ -93,15 +93,15 @@ for fotonr in old_json.keys():
                 fotonr_plus_ext = fotonr + ".tif"
                 if fotonr_plus_ext in fname_map:
                     time.sleep(3)
-                    page = pywikibot.Page(site, u"File:" + fname_map[fotonr_plus_ext])
+                    current_page = pywikibot.Page(site, u"File:" + fname_map[fotonr_plus_ext])
                     current_infotext = page.latest_revision.text # ensure latest revision
                     current_match = source_patt.search(current_infotext)
                     try:
                         current_source = current_match.group(1)
-                        altered_infotext = page.replace(current_source, new_source)
+                        altered_infotext = current_infotext.replace(current_source, new_source)
                         print("old_infotext:\n{}\n\n-------- {} ---------\naltered_page:\n{}\n\n".format(current_infotext, fname_map[fotonr_plus_ext], altered_infotext))
                     except AttributeError as e:
-                        print("Error on commons file {} source field retrieval:\n{}".format(page, e))
+                        print("Error on commons file {} source field retrieval:\n{}".format(current_page, e))
                     #print("current_source:\n{}".format(current_source))
                 else:
                     print("{} not in fname_map, thus wasn't good enough to be uploaded".format(fotonr))
