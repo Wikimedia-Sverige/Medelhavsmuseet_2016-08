@@ -67,8 +67,8 @@ def create_archive_card_smvk_em_link(fotonr, mexiko_arkiv):
 
 ac_cols = ["Fotonummer","Fotonummer.1","Fotonummer.2","Fotonummer.3","Fotonummer.4","Fotonummer.5"]
 
-for fotonr in old_json.keys():
-
+for index, fotonr in enumerate(old_json.keys()):
+    print("File no {} of {}".format(index, len(old_json.keys())))
     if fotonr in has_archive_cards:
         #print("{} has archive card".format(fotonr))
         
