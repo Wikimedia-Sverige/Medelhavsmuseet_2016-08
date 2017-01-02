@@ -5,6 +5,8 @@ import json
 import pywikibot
 import time
 
+alteration_log = open("append_archive_cards.log","w")
+
 site = pywikibot.Site(fam="commons")
 
 fname_map = {}
@@ -99,13 +101,17 @@ for fotonr in old_json.keys():
                         current_match = source_patt.search(current_infotext)
                     except Exception as e:
                         print("It seems that <fotonummer> {} is not uploaded?\nError message: {}\n".format(fotonr, e))
-                        
                     try:
                         current_source = current_match.group(1)
                         altered_infotext = current_infotext.replace(current_source, new_source)
-                        print("old_infotext:\n{}\n\n-------- {} ---------\naltered_page:\n{}\n\n".format(current_infotext, fname_map[fotonr_plus_ext], altered_infotext))
+                        current_page.text = altered_infotext
+                        current_page.save(u"Add link to archive card")
+                        alteration_log.write("Appended archive card link {} to File:{}\n".format(template, fname_map[fotonr_plus_ext]))
+
+                        #print("old_infotext:\n{}\n\n-------- {} ---------\naltered_page:\n{}\n\n".format(current_infotext, fname_map[fotonr_plus_ext], altered_infotext))
                     except AttributeError as e:
                         print("Error on commons file {} source field retrieval:\n{}".format(current_page, e))
                     #print("current_source:\n{}".format(current_source))
                 else:
                     print("{} not in fname_map, thus wasn't good enough to be uploaded".format(fotonr))
+alteration_log.close()
