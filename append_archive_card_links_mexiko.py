@@ -98,7 +98,7 @@ for fotonr in old_json.keys():
                     current_match = source_patt.search(current_infotext)
                     try:
                         current_source = current_match.group(1)
-                        altered_infotext = old_infotext.replace(current_source, new_source)
+                        altered_infotext = page.replace(current_source, new_source)
                         print("old_infotext:\n{}\n\n-------- {} ---------\naltered_page:\n{}\n\n".format(current_infotext, fname_map[fotonr_plus_ext], altered_infotext))
                     except AttributeError as e:
                         print("Error on commons file {} source field retrieval:\n{}".format(current_file, e))
