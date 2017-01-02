@@ -94,7 +94,7 @@ for fotonr in old_json.keys():
                 if fotonr_plus_ext in fname_map:
                     time.sleep(3)
                     current_page = pywikibot.Page(site, u"File:" + fname_map[fotonr_plus_ext])
-                    current_infotext = page.latest_revision.text # ensure latest revision
+                    current_infotext = current_page.latest_revision.text # ensure latest revision
                     current_match = source_patt.search(current_infotext)
                     try:
                         current_source = current_match.group(1)
