@@ -1,29 +1,32 @@
 import pandas as pd
 import regex
-from pandas import ExcelWriter
 import json
 import pywikibot
 import time
 
-alteration_log = open("append_archive_cards.log","w")
+alteration_log = open("append_archive_cards.log", "w")
 
 site = pywikibot.Site(fam="commons")
 
 fname_map = {}
 for line in open("./mexiko_filenames_mappings.csv").readlines():
     original, commons = line.split("|")
-    #print("original: {} commons: {}".format(original, commons))
+    # print("original: {} commons: {}".format(original, commons))
     if not original == "original":
         fname_map[original] = commons.strip()
 
 old_json = json.load(open("./mexiko_info_data.json"))
 new_json = old_json.copy()
 
+
 def strip(text):
+    '''Removes leading and trailing whitespace
+    '''
     try:
         return text.strip()
     except AttributeError:
         return text
+
 
 mexiko_converters = {
     "Fotonummer": strip,
@@ -45,15 +48,15 @@ mexiko_arkiv_converters = {
     "Arkiv"
 
 }
-
-mexiko_arkiv = pd.read_excel("excel-export.xls", sheetname="Mexiko-Arkiv") # All column names are strip:ed
+# All column names are strip:ed
+mexiko_arkiv = pd.read_excel("excel-export.xls", sheetname="Mexiko-Arkiv")
 
 has_archive_cards = []
 has_archive_cards.extend(mexiko_arkiv["Fotonummer.1"].dropna().tolist())
 has_archive_cards.extend(mexiko_arkiv["Fotonummer.2"].dropna().tolist())
 has_archive_cards.extend(mexiko_arkiv["Fotonummer.3"].dropna().tolist())
 has_archive_cards.extend(mexiko_arkiv["Fotonummer.4"].dropna().tolist())
-has_archive_cards = [id_str.strip() for id_str in has_archive_cards] # Note: every id has a leading whitespace in metadat doc!
+has_archive_cards = [id_str.strip() for id_str in has_archive_cards]  # Note: every id has a leading whitespace in metadat doc!
 
 # print(has_archive_cards)
 
@@ -115,3 +118,6 @@ for index, fotonr in enumerate(old_json.keys()):
                 else:
                     print("{} not in fname_map, thus wasn't good enough to be uploaded".format(fotonr))
 alteration_log.close()
+
+
+re.match("hej","jag är hej som")
