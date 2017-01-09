@@ -1,17 +1,16 @@
 import pandas as pd
-import regex
 import json
 import pywikibot
 import time
 
 site = pywikibot.Site(fam="commons")
 
-fname_map = {}
+json_images = {}
 for line in open("./mexiko_filenames_mappings.csv").readlines():
     original, commons = line.split("|")
     # print("original: {} commons: {}".format(original, commons))
     if not original == "original":
-        fname_map[original] = commons.strip()
+        json_images[original] = commons.strip()
 
 old_json = json.load(open("./mexiko_info_data.json"))
 new_json = old_json.copy()
@@ -58,7 +57,7 @@ for index, fotonr in enumerate(old_json.keys()):
     time.sleep(3)
     try:
         current_page = pywikibot.Page(
-            site, u"File:" + fname_map[fotonr_plus_ext])
+            site, u"File:" + json_images[fotonr_plus_ext])
         # ensure latest revision
         commons_infotext = current_page.latest_revision.text
     except Exception as e:
@@ -78,7 +77,7 @@ for index, fotonr in enumerate(old_json.keys()):
         print("old_infotext:\n{}\n\n-------- {} ---------\
             \naltered_page:\n{}\n\n".format(
             commons_infotext,
-            fname_map[fotonr_plus_ext],
+            json_images[fotonr_plus_ext],
             json_infotext)
         )
     except AttributeError as e:
@@ -86,5 +85,5 @@ for index, fotonr in enumerate(old_json.keys()):
             current_page, e))
         # print("current_source:\n{}".format(current_source))
     else:
-        print("{} not in fname_map, thus wasn't good enough \
+        print("{} not in json_images, thus wasn't good enough \
             to be uploaded".format(fotonr))
