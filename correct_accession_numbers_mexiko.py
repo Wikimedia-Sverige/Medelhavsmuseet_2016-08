@@ -75,17 +75,18 @@ for index, fotonr in enumerate(old_json.keys()):
         # print("current_source:\n{}".format(current_source))
 
     if commons_infotext != json_infotext:
+        time.sleep(1)
         no_alterations += 1
          # Dry-run to check quality ########
-        log.write("old_infotext:\n{}\n\n-------- {} ---------\
-            \naltered_page:\n{}\n\n".format(
-            commons_infotext,
-            json_images[fotonr_plus_ext],
-            json_infotext)
-        )
+        #log.write("old_infotext:\n{}\n\n-------- {} ---------\
+        #    \naltered_page:\n{}\n\n".format(
+        #    commons_infotext,
+        #    json_images[fotonr_plus_ext],
+        #    json_infotext)
+        #)
 
         # In production ###################
-        # current_page.save(u"Updated infotext from ./mexiko_info_data.json")
+        current_page.save(u"Updated infotext from ./mexiko_info_data.json")
     else:
         pass
 
