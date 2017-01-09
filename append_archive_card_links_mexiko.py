@@ -74,7 +74,7 @@ for index, fotonr in enumerate(old_json.keys()):
     print("File no {} of {}".format(index, len(old_json.keys())))
     if fotonr in has_archive_cards:
         #print("{} has archive card".format(fotonr))
-        
+
         for col in ac_cols:
             #print(mexiko_arkiv[col])
             if fotonr in mexiko_arkiv[col].str.strip().dropna().tolist():
@@ -86,11 +86,11 @@ for index, fotonr in enumerate(old_json.keys()):
                 #print("id_str: {} ".format(id_str))
                 template = "{{SMVK-EM-link|1=arkiv|2=" + id_str + "|3=" + fotonr + "}}"
                 #print("fotonr: {} {}".format(fotonr,template))
-        
+
                 old_infotext = old_json[fotonr]["info"]
                 source_patt = regex.compile(r"\|source\W+=([ \w,\:<>\/\'\.\n{}|\=]+)permission") # note: catches the initial | of permission fild
                 match = source_patt.search(old_infotext)
-                new_source = "" 
+                new_source = ""
                 new_source += match.group(1).split("\n")[0] + "\n"
                 new_source += match.group(1).split("\n")[1] + "\nRelated archive card: " + template
                 new_source += match.group(1).split("\n")[2] + "\n"
@@ -118,6 +118,3 @@ for index, fotonr in enumerate(old_json.keys()):
                 else:
                     print("{} not in fname_map, thus wasn't good enough to be uploaded".format(fotonr))
 alteration_log.close()
-
-
-re.match("hej","jag är hej som")
