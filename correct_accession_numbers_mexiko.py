@@ -3,6 +3,8 @@ import json
 import pywikibot
 import time
 
+log = open("./correct_accession_numbers.log","w")
+
 site = pywikibot.Site(fam="commons")
 
 json_images = {}
@@ -60,27 +62,28 @@ for index, fotonr in enumerate(old_json.keys()):
             site, u"File:" + json_images[fotonr_plus_ext])
         # ensure latest revision
         commons_infotext = current_page.latest_revision.text
+
+        current_page.text = json_infotext
+
+        ### In production ####
+        # current_page.save(u"Updated infotext from ./mexiko_info_data.json")
+
+        ### Dry-run to check quality ###
+        log.write("old_infotext:\n{}\n\n-------- {} ---------\
+            \naltered_page:\n{}\n\n".format(
+            commons_infotext,
+            json_images[fotonr_plus_ext],
+            json_infotext)
+        )
+
     except Exception as e:
             print(
                 "It seems <fotonummer> {} is not uploaded? \
                 \nError: {}\n".format(
                     fotonr, e))
 
-    print(
-        "old_source:\n{}\nnew_source:\n{}\n ".format(
-            json_infotext, commons_infotext))
-
-    try:
-        current_page.text = json_infotext
-        # current_page.save(u"Updated infotext from ./mexiko_info_data.json")
-
-        print("old_infotext:\n{}\n\n-------- {} ---------\
-            \naltered_page:\n{}\n\n".format(
-            commons_infotext,
-            json_images[fotonr_plus_ext],
-            json_infotext)
-        )
     except AttributeError as e:
         print("Error on commons file {} source field retrieval:\n{}".format(
             current_page, e))
         # print("current_source:\n{}".format(current_source))
+log.close()
