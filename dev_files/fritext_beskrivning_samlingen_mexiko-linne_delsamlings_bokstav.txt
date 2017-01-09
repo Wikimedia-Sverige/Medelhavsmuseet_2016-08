@@ -1,0 +1,17 @@
+a: Teotihuacan (241) utgrävningar, fornlämningar, invånare
+b: Mexiko (29) utgrävningar, fornlämningar mm
+c: Tula (32) landskap, miljöer, invånare, fornlämningar
+d: Oaxaca (54) fornlämningar, invånare, miljöer mm. Nr.1 saknas
+e: Teopanzolco, Xochicalco (50) fornlänningar nr.51 saknas
+f: Yucatan, Chichen Itza fornlämningar, landskap. Två kartonger, 352 saknas
+g: Yucatan, Uxmal (113) fornlämningar
+h: Yucatan, Sayil (9) fornlämningar
+i: Yucatan, Kabah (59) fornlämningar
+j: Yucatan, Labna (90) fornlämningar, bilresa längs landsvägen
+k: Yucatan, Merida (42) miljöer, invånare
+l: Yucatan, Mona (11) invånare, miljöer
+m: Yucatan, Ticul (2) boskap
+n: Yucatan, Dzitas (5) miljöer
+o: Yucatan, Villa Hermosa (14) flygfoton
+p: Yucatan, skilda orter (25) tågresan Vera Cruz- Mexico
+q: Teotihuacan (156) arkeologiska föremål
