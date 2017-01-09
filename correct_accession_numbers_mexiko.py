@@ -84,6 +84,3 @@ for index, fotonr in enumerate(old_json.keys()):
         print("Error on commons file {} source field retrieval:\n{}".format(
             current_page, e))
         # print("current_source:\n{}".format(current_source))
-    else:
-        print("{} not in json_images, thus wasn't good enough \
-            to be uploaded".format(fotonr))
