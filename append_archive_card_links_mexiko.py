@@ -5,6 +5,7 @@ import pywikibot
 import time
 
 alteration_log = open("append_archive_cards.log", "w")
+no_alterations = 0
 
 site = pywikibot.Site(fam="commons")
 
@@ -71,7 +72,6 @@ def create_archive_card_smvk_em_link(fotonr, mexiko_arkiv):
 ac_cols = ["Fotonummer","Fotonummer.1","Fotonummer.2","Fotonummer.3","Fotonummer.4","Fotonummer.5"]
 
 for index, fotonr in enumerate(old_json.keys()):
-    print("File no {} of {}".format(index, len(old_json.keys())))
     if fotonr in has_archive_cards:
         #print("{} has archive card".format(fotonr))
 
@@ -97,6 +97,7 @@ for index, fotonr in enumerate(old_json.keys()):
                 #print("old_source:\n{}\nnew_source:\n{}\n ".format(match.group(1), new_source))
                 fotonr_plus_ext = fotonr + ".tif"
                 if fotonr_plus_ext in fname_map:
+                    no_alterations += 1
                     time.sleep(3)
                     try:
                         current_page = pywikibot.Page(site, u"File:" + fname_map[fotonr_plus_ext])
@@ -117,4 +118,5 @@ for index, fotonr in enumerate(old_json.keys()):
                     #print("current_source:\n{}".format(current_source))
                 else:
                     print("{} not in fname_map, thus wasn't good enough to be uploaded".format(fotonr))
+    print("File no {} of {}. Alterations: {}".format(index, len(old_json.keys()),no_alterations))
 alteration_log.close()
