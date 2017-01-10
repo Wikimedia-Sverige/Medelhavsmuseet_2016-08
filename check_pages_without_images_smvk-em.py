@@ -30,7 +30,7 @@ def add_deletion_template(page):
     """
     current_infotext = page.latest_revision.text
     new_infotext = "{{speedydelete|broken file upload}}\n" + current_infotext
-    print(new_infotext)
+    print("--- {}\n{}\n".format(page,new_infotext))
 
 for page in gen:
     filePage = pywikibot.FilePage(page)
