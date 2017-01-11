@@ -16,31 +16,34 @@ fname_patt = re.compile(r'\[\[commons\:(File:[\w \_\-\.\,\(\)]+)\]\]')
 # test regular expression
 # test_match = fname_patt.search(example_error)
 # print(test_match.group(1))
-
-bad_images = []
-
+tot_images = 0
+bad_images = 0
 
 def add_deletion_template(page):
     """
     Fetch text from pywikibot filePage (since it's on Commons) object
-    and add a template for speedy deletation to top, save it and
-    return success message or error message.
+    and add a template for speedy deletion to top,
 
     :rtype: string
     """
     current_infotext = page.latest_revision.text
     new_infotext = "{{speedydelete|broken file upload}}\n" + current_infotext
-    print("--- {}\n{}\n".format(page,new_infotext))
+    print("--- Added deletion template to file {}\n{}\n".format(page,new_infotext))
+    return new_infotext
 
 for page in gen:
+    tot_images += 1
     filePage = pywikibot.FilePage(page)
+    print("Total number of files checked: {}".format(tot_images), end="\r")
     try:
-        print(filePage.fileIsShared())
+        filePage.fileIsShared()
     except pywikibot.exceptions.PageRelatedError as e:
+        bad_images += 1
+        print("Bad image no {} error: {}".format(bad_images, filePage))
         match = fname_patt.search(str(e))
         # print(match.group(1))
-        add_deletion_template(page)
+        new_infotext = add_deletion_template(page)
+        filePage.text = new_infotext
+        # filePage.save("Add template for speedy deletion due to no image uploaded, only text")
 
-        bad_images.append(match.group(1))
-
-print(len(bad_images))
+print("Total number of bad images: {}".format(len(bad_images)))
