@@ -11,7 +11,7 @@ gen = pg.CategorizedPageGenerator(cat)
 
 example_error = """
 loadimageinfo: Query on [[commons:File:Från utgrävningarna vid Xolalpan - SMVK - 0307.a.0164.b.tif]] returned no imageinfo"""
-fname_patt = re.compile(r'\[\[commons\:(File:[\w \_\-\.\,\(\)]+)\]\]')
+fname_patt = re.compile(r'\[\[commons:(File:[\w _\-\.,\(\)]+)\]\]')
 
 # test regular expression
 # test_match = fname_patt.search(example_error)
@@ -19,16 +19,18 @@ fname_patt = re.compile(r'\[\[commons\:(File:[\w \_\-\.\,\(\)]+)\]\]')
 tot_images = 0
 bad_images = 0
 
-def add_deletion_template(page):
+
+def add_deletion_template(page_obj):
     """
     Fetch text from pywikibot filePage (since it's on Commons) object
     and add a template for speedy deletion to top,
 
     :rtype: string
     """
-    current_infotext = page.latest_revision.text
+    current_infotext = page_obj.latest_revision.text
     new_infotext = "{{speedydelete|broken file upload}}\n" + current_infotext
-    print("--- Added deletion template to file {}\n{}\n".format(page,new_infotext))
+    print("--- Added deletion template to file {}\n".format(page))
+
     return new_infotext
 
 for page in gen:
@@ -42,8 +44,8 @@ for page in gen:
         print("Bad image no {} error: {}".format(bad_images, filePage))
         match = fname_patt.search(str(e))
         # print(match.group(1))
-        new_infotext = add_deletion_template(page)
-        filePage.text = new_infotext
-        # filePage.save("Add template for speedy deletion due to no image uploaded, only text")
+        updated_infotext = add_deletion_template(page)
+        filePage.text = updated_infotext
+        filePage.save("Add template for speedy deletion due to no image uploaded, only text")
 
-print("Total number of bad images: {}".format(len(bad_images)))
+print("Total number of bad images: {}".format(bad_images))
